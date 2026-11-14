@@ -37,10 +37,24 @@ export function writeFakeMicWav(): void {
   writeFileSync(FAKE_MIC_WAV, data);
 }
 
-/** Ekran görüntüsünü screenshots/<proje>/<ad>.png olarak kaydeder. */
+/**
+ * Ekran görüntüsünü screenshots/<proje>/<ad>.png olarak kaydeder.
+ * Görüntüler gözle kontrol içindir; dosya başka bir program tarafından kilitliyse (Windows'ta önizleme,
+ * virüs taraması) yazma birkaç kez denenir ve yine olmazsa test bu yüzden kalmaz.
+ */
 export async function shot(page: Page, info: TestInfo, name: string, fullPage = false): Promise<void> {
   const path = join(ROOT, 'screenshots', info.project.name, `${name}.png`);
-  await page.screenshot({ path, fullPage });
+  const image = await page.screenshot({ fullPage });
+  mkdirSync(dirname(path), { recursive: true });
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      writeFileSync(path, image);
+      return;
+    } catch {
+      await new Promise((r) => setTimeout(r, 150));
+    }
+  }
+  console.warn(`[shot] yazılamadı: ${path}`);
 }
 
 /** Yatay taşma olmamalı; dokunma hedefleri yeterince büyük olmalı. */
