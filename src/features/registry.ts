@@ -2,6 +2,7 @@ import type { ComponentType } from 'preact';
 import type { Key } from '../i18n';
 import type { IconName } from '../ui/Icon';
 import { Home } from './home/Home';
+import { MetronomeScreen } from './metronome/Metronome';
 import { Settings } from './settings/Settings';
 import { Tuner } from './tuner/Tuner';
 
@@ -22,6 +23,15 @@ export interface Feature {
 export const FEATURES: Feature[] = [
   { id: 'home', title: 'nav.home', icon: 'home', component: Home, primary: true },
   { id: 'tuner', title: 'nav.tuner', desc: 'home.tuner.desc', icon: 'tuner', component: Tuner, primary: true, tool: true },
+  {
+    id: 'metronome',
+    title: 'nav.metronome',
+    desc: 'home.metronome.desc',
+    icon: 'metronome',
+    component: MetronomeScreen,
+    primary: true,
+    tool: true,
+  },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings, primary: true },
 ];
 

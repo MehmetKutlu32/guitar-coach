@@ -120,7 +120,7 @@ export function Tuner() {
 
   const onString = async (index: number) => {
     await resumeAudio();
-    playPluck(midiToFreq(tuning.notes[index], a4), { gain: 0.8 });
+    playPluck(midiToFreq(tuning.notes[index], a4), { gain: 0.8, duration: 3 });
     setLocked((prev) => (prev === index ? null : index));
   };
 

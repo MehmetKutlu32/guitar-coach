@@ -1,10 +1,13 @@
 import { render } from 'preact';
 import { App } from './app';
+import { loadPersistent } from './db/persist';
+import { installDebugHooks } from './debug';
 import { loadSettings } from './settings';
 import './styles/app.css';
 
 async function boot(): Promise<void> {
-  await loadSettings();
+  await Promise.all([loadSettings(), loadPersistent()]);
+  installDebugHooks();
   render(<App />, document.getElementById('app')!);
 
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {

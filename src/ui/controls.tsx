@@ -85,6 +85,50 @@ export function LevelMeter() {
   );
 }
 
+/** Aç/kapa anahtarı. */
+export function Toggle(props: { checked: boolean; onChange: (v: boolean) => void; label: string; testid?: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={props.checked}
+      class={`toggle ${props.checked ? 'on' : ''}`}
+      onClick={() => props.onChange(!props.checked)}
+      data-testid={props.testid}
+    >
+      <span class="toggle-label">{props.label}</span>
+      <span class="toggle-track" aria-hidden="true">
+        <span class="toggle-thumb" />
+      </span>
+    </button>
+  );
+}
+
+/** Büyük tutamaçlı kaydırıcı. */
+export function Slider(props: {
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (v: number) => void;
+  label: string;
+  testid?: string;
+}) {
+  return (
+    <input
+      class="slider"
+      type="range"
+      aria-label={props.label}
+      min={props.min}
+      max={props.max}
+      step={props.step ?? 1}
+      value={props.value}
+      onInput={(e) => props.onChange(Number((e.target as HTMLInputElement).value))}
+      data-testid={props.testid}
+    />
+  );
+}
+
 export function Notice(props: { kind?: 'error' | 'info' | 'good'; children: ComponentChildren; testid?: string }) {
   return (
     <p class={`notice ${props.kind ?? 'info'}`} role={props.kind === 'error' ? 'alert' : 'status'} data-testid={props.testid}>

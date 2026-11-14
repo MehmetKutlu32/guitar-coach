@@ -55,6 +55,31 @@
 - **Gecikme kalibrasyonu Aşama 6'ya bırakıldı.** Akort için gerekmiyor; ritim geri bildirimi ile birlikte anlamlı.
   Giriş cihazı seçimi ve seviye göstergesi Aşama 1'de var.
 
+## Metronom
+
+- **Zamanlama: "ileriye bakan" planlayıcı.** 25 ms'lik bir zamanlayıcı, önümüzdeki 150 ms'ye düşen tıkları
+  `AudioContext` saatine göre kesin zamanlarıyla planlar. Zamanlayıcının gecikmesi sese yansımaz. Sekme gizliyken
+  tarayıcı zamanlayıcıları seyrelttiği için pencere 1,6 sn'ye çıkar.
+- **Adım zamanları çapa + çarpma ile hesaplanır** (`çapa + n · adımSüresi`), birikimli toplama ile değil; böylece
+  yuvarlama hatası birikmez. Tempo değişince çapa o adıma taşınır.
+- **Saf mantık (`src/audio/clock.ts`) Web Audio'dan ayrı**: Node'da birim testiyle, titreşimli sahte zamanlayıcıyla
+  doğrulanır. Ses tarafı (`metronome.ts`) yalnızca tıkları planlar.
+- **Uzun duraklamadan sonra geçmiş adımlar atlanır** (25 ms'den eski olanlar çalınmaz); ızgara korunur. Aksi halde
+  uyuyan sekme uyanınca tıklar üst üste yığılırdı.
+- **BPM, ölçünün paydasındaki nota değerini sayar** (6/8'de sekizlik). Noktalı dörtlük saymak yerine tek kural:
+  arayüzde açıklama gerektirmiyor.
+- **Vurgular vuruşa dokunarak değişir** (normal → vurgulu → sessiz). Sessiz vuruş, "boşlukta tempoyu tutma"
+  alıştırması için de kullanılabilir.
+- **Görsel gösterge çıkış gecikmesini hesaba katar**: vuruş noktası, tık planlandığında değil duyulduğunda
+  (`currentTime − outputLatency`) yanar.
+- **Vuruş kalıpları ölçünün vuruş sayısına bağlıdır**; seçili ölçüye uymayan kalıplar listede görünmez. Kalıp
+  ızgarası ile alt bölmenin en küçük ortak katı saat adımı olur (ör. üçleme + sekizlik kalıp → vuruş başına 6 adım).
+- **Kalıp seslendirmesi açık Mi minör akoruyla** yapılır (Karplus-Strong), metronomla aynı ana planlanır. Yukarı
+  vuruşta yalnızca ince 4 tel çalınır; susturulmuş vuruş çok kısa sönümlü teldir.
+- **Kullanıcı kalıpları `items` deposunda `type: 'strum'`** olarak saklanır; dışa/içe aktarmaya kendiliğinden dahildir.
+- **Metronom ekrandan çıkınca durur.** Arka planda çalmaya devam etmesi, başka ekranların kendi metronom
+  kullanımıyla (geçiş egzersizi, ritim geri bildirimi) çakışırdı.
+
 ## Test
 
 - **Playwright, derlenmiş sürüme (`vite preview`) karşı çalışır**: service worker ve gerçek paket test edilsin diye.
