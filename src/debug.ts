@@ -1,4 +1,6 @@
 import { StepClock } from './audio/clock';
+import { outputRms } from './audio/engine';
+import { flushPersistent } from './db/persist';
 import { metronome, scheduleClick } from './audio/metronome';
 
 /**
@@ -9,6 +11,10 @@ export interface GitarDebug {
   metronome: typeof metronome;
   /** Metronom tıklarını çevrimdışı işler ve her tıkın planlanan/gerçekleşen örnek konumunu döndürür. */
   renderClicks(bpm: number, beats: number, sampleRate?: number): Promise<{ expected: number; actual: number }[]>;
+  /** Ana çıkışın o anki RMS seviyesi: "gerçekten ses çıktı mı" denetimi için. */
+  outputRms(): number;
+  /** Bekleyen kalıcı durum yazmaları bitince çözülür. */
+  flush(): Promise<void>;
 }
 
 declare global {
@@ -39,5 +45,5 @@ async function renderClicks(bpm: number, beats: number, sampleRate = 48000) {
 }
 
 export function installDebugHooks(): void {
-  window.__gitar = { metronome, renderClicks };
+  window.__gitar = { metronome, renderClicks, outputRms, flush: flushPersistent };
 }

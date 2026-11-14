@@ -17,8 +17,24 @@ export function audioCtx(): AudioContext {
     limiter.attack.value = 0.003;
     limiter.release.value = 0.15;
     master.connect(limiter).connect(ctx.destination);
+    // Çıkışı ölçmek için (seviye göstergeleri ve otomatik testler).
+    outputTap = ctx.createAnalyser();
+    outputTap.fftSize = 2048;
+    limiter.connect(outputTap);
   }
   return ctx;
+}
+
+let outputTap: AnalyserNode | null = null;
+const tapBuffer = new Float32Array(2048);
+
+/** Ana çıkışın o anki RMS seviyesi (0..1). */
+export function outputRms(): number {
+  if (!outputTap) return 0;
+  outputTap.getFloatTimeDomainData(tapBuffer);
+  let sum = 0;
+  for (let i = 0; i < tapBuffer.length; i++) sum += tapBuffer[i] * tapBuffer[i];
+  return Math.sqrt(sum / tapBuffer.length);
 }
 
 export function masterOut(): AudioNode {

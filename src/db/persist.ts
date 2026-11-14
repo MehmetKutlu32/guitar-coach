@@ -8,6 +8,8 @@ export interface Persistent<T extends object> {
 }
 
 const loaders: (() => Promise<void>)[] = [];
+/** Yazmalar sırayla yapılır; böylece art arda gelen güncellemelerde son değer kalıcı olur. */
+let pending: Promise<void> = Promise.resolve();
 
 /**
  * Bir ekranın kalıcı durumu (ör. metronom ayarları). `kv` deposunda tek kayıt olarak tutulur.
@@ -27,9 +29,17 @@ export function persistent<T extends object>(key: string, defaults: T): Persiste
     state,
     update(patch) {
       state.value = { ...state.value, ...patch };
-      kvSet(key, state.value).catch((err) => console.warn(`[persist] ${key} yazılamadı`, err));
+      const value = state.value;
+      pending = pending
+        .then(() => kvSet(key, value))
+        .catch((err) => console.warn(`[persist] ${key} yazılamadı`, err));
     },
   };
+}
+
+/** Bekleyen tüm yazmalar bitince çözülür. */
+export function flushPersistent(): Promise<void> {
+  return pending;
 }
 
 /** Uygulama açılışında, ilk çizimden önce tüm kalıcı durumları yükler. */

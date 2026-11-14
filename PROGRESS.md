@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-14 · Biten aşama: **2 / 16** · Sıradaki: **Aşama 3 — Akor kütüphanesi + geçiş egzersizi**
+Son güncelleme: 2026-11-14 · Biten aşama: **3 / 16** · Sıradaki: **Aşama 4 — Pratik günlüğü**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -10,8 +10,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 |---|-------|-------|
 | 1 | İskelet + akort aleti | ✅ bitti |
 | 2 | Metronom + ritim kalıpları | ✅ bitti |
-| 3 | Akor kütüphanesi + geçiş egzersizi | ⏳ sırada |
-| 4 | Pratik günlüğü | — |
+| 3 | Akor kütüphanesi + geçiş egzersizi | ✅ bitti |
+| 4 | Pratik günlüğü | ⏳ sırada |
 | 5 | Backing track üretici | — |
 | 6 | Çalarken geri bildirim — ritim | — |
 | 7 | Çalarken geri bildirim — akor | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 32 / 32 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 32 / 32 |
+| Vitest (birim) | ✅ 44 / 44 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 36 / 36 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -79,6 +79,14 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Vuruş kalıpları: 12 hazır kalıp, metronomla senkron gösterim, gitar sesiyle seslendirme,
   kullanıcının kendi kalıbını oluşturması/düzenlemesi/silmesi (IndexedDB'de saklanır).
 
+### Aşama 3 — Akor kütüphanesi + geçiş egzersizi
+- 29 açık akor, 99 bare akor (E ve A biçimleri, 12 kök × maj/min/7/m7 + maj7), 24 power akor.
+  Her biçimin notaları birim testiyle akorun teorik notalarına karşı doğrulanır.
+- SVG diyagramlar: kök nota vurgusu, parmak numaraları, bare çubuğu, açık/çalınmayan tel işaretleri.
+- Diyagrama dokununca akor sentez gitar sesiyle çalınır (vuruş ya da tek tek).
+- Geçiş egzersizi: 3 sn geri sayım, 30/60/120 sn süre, dokunarak ya da sonunda elle sayım,
+  sonuç kaydı, rekor bildirimi, çift başına istatistik + çizgi grafik, tüm çiftlerin listesi.
+
 ## Bilinen eksikler / hatalar
 
 - **GitHub'a push edilmedi, site yayınlanmadı.** `gh` CLI bu makinede giriş yapmamış. Tüm commit'ler yerelde.
@@ -86,6 +94,7 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - **CI iş akışı hiç çalışmadı** (yukarıdaki nedenle); Linux'ta başsız Chromium'da ses testlerinin geçtiği doğrulanmadı.
 - Gecikme kalibrasyonu henüz yok; Aşama 6'da eklenecek (bkz. DECISIONS.md).
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
+- Geçiş egzersizinde sayım şimdilik elle (dokunarak ya da sonunda girerek); otomatik sayım Aşama 7'de.
 - Metronom yalnızca kendi ekranı açıkken çalar; başka ekrana geçince durur (bilinçli karar).
 
 ## Devam edecek kişi için notlar
@@ -98,5 +107,7 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Zamanlama gereken her şey (eşlik, egzersizler) `metronome` örneğini ve `onStep` kancasını kullanabilir
   (`src/audio/metronome.ts`); saf saat mantığı `src/audio/clock.ts`.
 - Uçtan uca testlerde farklı giriş sinyali için `useSyntheticInput()`; ölçüm kancaları `window.__gitar`
-  (`src/debug.ts`).
+  (`src/debug.ts`): metronom günlüğü, çıkış seviyesi, bekleyen yazmaları bitirme (`flush`).
+- Süreli egzersiz testlerinde `page.clock.install()` + `fastForward()` kullanılır (bkz. `chords.spec.ts`).
+- Akor verisi ve teori: `src/music/chords.ts`, `src/music/theory.ts`. Grafikler: `src/ui/charts.tsx`.
 - Windows'ta Git Bash heredoc'ları tek tırnak sayısı tek olunca bozuluyor; dosyaları doğrudan yaz.

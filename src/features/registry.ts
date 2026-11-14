@@ -1,6 +1,7 @@
 import type { ComponentType } from 'preact';
 import type { Key } from '../i18n';
 import type { IconName } from '../ui/Icon';
+import { ChordsScreen } from './chords/Chords';
 import { Home } from './home/Home';
 import { MetronomeScreen } from './metronome/Metronome';
 import { Settings } from './settings/Settings';
@@ -29,6 +30,15 @@ export const FEATURES: Feature[] = [
     desc: 'home.metronome.desc',
     icon: 'metronome',
     component: MetronomeScreen,
+    primary: true,
+    tool: true,
+  },
+  {
+    id: 'chords',
+    title: 'nav.chords',
+    desc: 'home.chords.desc',
+    icon: 'chords',
+    component: ChordsScreen,
     primary: true,
     tool: true,
   },

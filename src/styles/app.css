@@ -973,3 +973,333 @@ a {
     top: 16px;
   }
 }
+
+/* ---------- Akorlar ---------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.root-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.chip {
+  min-height: 46px;
+  min-width: 46px;
+  padding: 0 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-weight: 650;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+.root-grid .chip {
+  padding: 0;
+  border-radius: 12px;
+}
+
+.chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.chord-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .chord-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .chord-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.chord-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.15s;
+}
+
+.chord-card.played {
+  border-color: var(--accent);
+}
+
+.chord-play,
+.pair-chord {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 6px 4px 4px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.chord-play:hover,
+.pair-chord:hover {
+  background: var(--surface-2);
+}
+
+.chord-play:active,
+.pair-chord:active {
+  transform: scale(0.98);
+}
+
+.chord-name {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.chord-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.chord-arp {
+  min-height: 46px;
+  padding: 0 8px;
+  font-size: 14px;
+}
+
+.chord-diagram {
+  display: block;
+  width: 100%;
+  max-width: 150px;
+}
+
+.cd-fret {
+  stroke: #596072;
+  stroke-width: 1.2;
+}
+
+.cd-nut {
+  stroke: var(--text);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.cd-string {
+  stroke: #8690a3;
+}
+
+.cd-base {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cd-mute line {
+  stroke: var(--muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.cd-open {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.8;
+}
+
+.cd-open.root {
+  stroke: var(--accent);
+}
+
+.cd-dot,
+.cd-barre {
+  fill: var(--text);
+}
+
+.cd-dot.root {
+  fill: var(--accent);
+}
+
+.cd-finger {
+  fill: var(--bg);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pair-chord {
+  background: var(--surface-2);
+}
+
+.tx-run {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tx-status {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tx-status.good {
+  color: var(--good);
+  font-size: 22px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.tx-clock {
+  text-align: center;
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.tx-clock.countin {
+  color: var(--accent);
+}
+
+.tx-plus {
+  flex-direction: column;
+  gap: 0;
+  min-height: 128px;
+  font-size: 16px;
+}
+
+.tx-plus-big {
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  min-height: var(--tap);
+  padding: 8px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.list-row.active {
+  border-color: var(--accent);
+}
+
+.list-row .dim {
+  font-size: 14px;
+}
+
+/* ---------- Grafikler ---------- */
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart-tick {
+  fill: var(--muted);
+  font-size: 10px;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-dot {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.chart-bar {
+  fill: #7d5a1f;
+}
+
+.chart-bar.now {
+  fill: var(--accent);
+}

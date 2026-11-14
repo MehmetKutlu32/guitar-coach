@@ -80,6 +80,21 @@
 - **Metronom ekrandan çıkınca durur.** Arka planda çalmaya devam etmesi, başka ekranların kendi metronom
   kullanımıyla (geçiş egzersizi, ritim geri bildirimi) çakışırdı.
 
+## Akorlar
+
+- **Bare ve power akorlar taşınabilir biçimlerden üretilir** (E ve A biçimleri × perde), tek tek yazılmaz. Açık
+  akorlar elle girilir. Tüm biçimler birim testinde teoriyle karşılaştırılır: yabancı nota yok, bas kök, yalnızca
+  beşli eksik olabilir, el açıklığı en çok 4 perde.
+- **Egzersizde akor simge olarak seçilir**, biçim olarak değil; simgenin "önerilen" biçimi gösterilir (varsa açık
+  akor, yoksa en alçak perdedeki bare). 150 biçimlik bir seçim listesi telefonda kullanışsız olurdu.
+- **Sonuçlar dakika başına geçişe çevrilerek karşılaştırılır**; böylece 30/60/120 sn'lik egzersizler aynı grafikte
+  ve aynı rekor hesabında yer alır.
+- **Çift anahtarı sıradan bağımsızdır** (`Am|C` = `C|Am`).
+- **Sayım elle**: çalarken ekrana dokunmak zor olduğundan iki yol var — büyük +1 düğmesi ya da sonunda sayıyı
+  girme/düzeltme. Otomatik sayım akor tanıma ile Aşama 7'de eklenecek.
+- **Kalıcı durum yazmaları sıraya alınır** (`persist.ts`): art arda gelen güncellemelerde son değerin kalıcı olması
+  ve testlerin yeniden yüklemeden önce yazmanın bittiğini bekleyebilmesi için.
+
 ## Test
 
 - **Playwright, derlenmiş sürüme (`vite preview`) karşı çalışır**: service worker ve gerçek paket test edilsin diye.
