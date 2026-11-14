@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-14 · Biten aşama: **4 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 5 — Backing track üretici**
+Son güncelleme: 2026-11-14 · Biten aşama: **5 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 6 — Çalarken geri bildirim (ritim)**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -12,8 +12,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 2 | Metronom + ritim kalıpları | ✅ bitti |
 | 3 | Akor kütüphanesi + geçiş egzersizi | ✅ bitti |
 | 4 | Pratik günlüğü | ✅ bitti |
-| 5 | Backing track üretici | ⏳ sırada |
-| 6 | Çalarken geri bildirim — ritim | — |
+| 5 | Backing track üretici | ✅ bitti |
+| 6 | Çalarken geri bildirim — ritim | ⏳ sırada |
 | 7 | Çalarken geri bildirim — akor | — |
 | 8 | Akıllı günlük plan | — |
 | 9 | Şarkı modu | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 57 / 57 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 40 / 40 |
+| Vitest (birim) | ✅ 74 / 74 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 48 / 48 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -59,6 +59,15 @@ Uçtan uca: sahte mikrofondaki 110 Hz ton "A2, akortlu" (±3 cent içinde); 18 c
 | İşlenmiş seste tıkın başladığı örnek ile planlanan an arasındaki fark (OfflineAudioContext, 64 tık) | en fazla 1,00 örnek ≈ 0,023 ms |
 
 Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donanım gecikmesi ayrıdır ve ölçülmedi.
+
+### Eşlik grubu (Aşama 5)
+
+| Ölçüm | Sonuç |
+|-------|-------|
+| Vuruşların ses saatindeki planlanan aralığı (240 BPM, canlı) | ideal ızgaradan sapma < 1 ns |
+| Çevrimdışı işlenen karışımın tepe değeri (varsayılan seviyeler, sınırlayıcıdan önce) | 0,85 (dört tarzda da; kırpılma yok) |
+| Karışımda partilerin RMS düzeyi — rock | davul 0,073 · bas 0,140 · akor 0,072 |
+| Aynı — blues / pop / funk | 0,063·0,142·0,053 / 0,072·0,141·0,066 / 0,073·0,101·0,044 |
 
 ## Yapılanlar
 
@@ -96,6 +105,15 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Son oturumlar listesi, silme, uygulama dışındaki çalışmayı elle ekleme.
 - Mobil alt çubuk: Ana sayfa, Akort, Metronom, Akorlar, Günlük. Ayarlar üst çubuktaki simgeye taşındı.
 
+### Aşama 5 — Backing track üretici
+- 15 hazır dizi (12 ölçülük blues, I–V–vi–IV, ii–V–I, minör diziler, vamp'lar…) roma rakamlarından 12 tona çözülür.
+- Kullanıcının kendi dizisi: `Am | F | C G | E7` yazımı, canlı önizleme, hatalı akor uyarısı, başka tona taşıma.
+- Sentez grup: davul (kick, trampet, zil), bas, elektro piyano benzeri akor. Dört tarz: rock, blues (shuffle),
+  pop, funk. Dizinin başında zil, son ölçüsünde geçiş.
+- Tempo, ton, tarz, döngü, bir ölçü sayma, parti ses düzeyleri; hepsi çalarken değiştirilebilir.
+- Ekranda şimdiki ve sıradaki akor, vuruş göstergesi, ölçü ızgarası.
+- Tona ve diziye uygun gam önerileri, notalarıyla.
+
 ## Bilinen eksikler / hatalar
 
 - **GitHub'a push edilmedi, site yayınlanmadı.** `gh` CLI bu makinede giriş yapmamış. Tüm commit'ler yerelde.
@@ -104,6 +122,7 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Gecikme kalibrasyonu henüz yok; Aşama 6'da eklenecek (bkz. DECISIONS.md).
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - Geçiş egzersizinde sayım şimdilik elle (dokunarak ya da sonunda girerek); otomatik sayım Aşama 7'de.
+- Eşlik yalnızca 4/4'lük ölçüde. Seslerin tınısı kulakla değerlendirilmedi (yalnızca seviye ve zamanlama ölçüldü).
 - Oturum sayacı, uygulama görünür değilken (ekran kilitli, başka sekme) süre biriktirmez: iki sayım arası en çok
   5 sn sayılır. Ekran kapalıyken çalışılan süre günlüğe eksik yansır; gerekirse elle eklenebilir.
 - Metronom yalnızca kendi ekranı açıkken çalar; başka ekrana geçince durur (bilinçli karar).

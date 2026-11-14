@@ -1,6 +1,7 @@
 import type { ComponentType } from 'preact';
 import type { Key } from '../i18n';
 import type { IconName } from '../ui/Icon';
+import { BackingScreen } from './backing/Backing';
 import { ChordsScreen } from './chords/Chords';
 import { Home } from './home/Home';
 import { LogScreen } from './log/Log';
@@ -55,6 +56,15 @@ export const FEATURES: Feature[] = [
     primary: true,
     tool: true,
     activity: 'chords',
+  },
+  {
+    id: 'backing',
+    title: 'nav.backing',
+    desc: 'home.backing.desc',
+    icon: 'band',
+    component: BackingScreen,
+    tool: true,
+    activity: 'backing',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

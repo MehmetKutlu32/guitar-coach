@@ -95,6 +95,23 @@
 - **Kalıcı durum yazmaları sıraya alınır** (`persist.ts`): art arda gelen güncellemelerde son değerin kalıcı olması
   ve testlerin yeniden yüklemeden önce yazmanın bittiğini bekleyebilmesi için.
 
+## Eşlik (backing track)
+
+- **Diziler roma rakamlarıyla tanımlanır**, tona göre akora çözülür; nota yazımı tona uyar (Fa majörde Bb, Mi
+  majörde C#m). Kullanıcı dizileri mutlak akorlarla yazılır; "ev tonu" ilk akordur ve ton seçimi diziyi oraya taşır.
+- **Yalnızca 4/4.** Hazır tarz kalıpları 4/4 için yazıldı; diğer ölçüler ayrı kalıp setleri gerektirir.
+- **Vuruş başına 12 adım**: hem on altılıkları (3'er adım) hem üçlemeleri/shuffle'ı (4'er adım) tek ızgarada taşır.
+- **Kalıp mantığı saf (`styles.ts` → `eventsAt`)**, ses üretimi ayrı (`band.ts`). Böylece hangi adımda ne
+  çalınacağı Node'da sınanır; sesler `BaseAudioContext` aldığından çevrimdışı işlenip seviyeleri ölçülür.
+- **Akor enstrümanı gitar değil, klavye benzeri bir ses.** Kullanıcı üstüne gitar çalacak; aynı tınıda bir eşlik
+  hem kullanıcının sesini maskeler hem de ileride akor tanımayı (Aşama 7) yanıltır.
+- **Seviyeler ölçülerek dengelendi.** İlk karışımda bas RMS 0,57 ve ham tepe 1,9 çıktı (sınırlayıcı sürekli
+  çalışacaktı); kazançlar düşürülerek ham tepe 0,85'e indirildi. Test, tepenin 1'in altında kaldığını ve hiçbir
+  partinin karışımın dörtte birinden az olmadığını denetler.
+- **Genel `Transport` sınıfı** (`src/audio/transport.ts`) eşlikle birlikte eklendi; şarkı ve tab oynatıcıları da
+  bunu kullanacak. Metronom kendi (eşdeğer) döngüsünü koruyor: çalışan, testli kodu yeniden yazmanın getirisi yok.
+- **Blues gamındaki mavi nota bemollü yazılır** (A blues: A C D Eb E G), ton diyezli olsa da.
+
 ## Pratik günlüğü
 
 - **Süre, açık olan ekrana göre kendiliğinden ayrılır.** Kullanıcı her egzersiz için ayrı sayaç başlatmak zorunda
