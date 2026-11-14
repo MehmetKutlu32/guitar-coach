@@ -3,6 +3,7 @@ import type { Key } from '../i18n';
 import type { IconName } from '../ui/Icon';
 import { ChordsScreen } from './chords/Chords';
 import { Home } from './home/Home';
+import { LogScreen } from './log/Log';
 import { MetronomeScreen } from './metronome/Metronome';
 import { Settings } from './settings/Settings';
 import { Tuner } from './tuner/Tuner';
@@ -18,12 +19,23 @@ export interface Feature {
   primary?: boolean;
   /** Ana sayfadaki araç listesinde gösterilsin mi. */
   tool?: boolean;
+  /** Bu ekranda geçen süre pratik günlüğünde hangi egzersiz türüne yazılır (yoksa "serbest"). */
+  activity?: string;
 }
 
 /** Uygulamadaki ekranlar. Yeni bir aşama bittiğinde buraya eklenir. */
 export const FEATURES: Feature[] = [
   { id: 'home', title: 'nav.home', icon: 'home', component: Home, primary: true },
-  { id: 'tuner', title: 'nav.tuner', desc: 'home.tuner.desc', icon: 'tuner', component: Tuner, primary: true, tool: true },
+  {
+    id: 'tuner',
+    title: 'nav.tuner',
+    desc: 'home.tuner.desc',
+    icon: 'tuner',
+    component: Tuner,
+    primary: true,
+    tool: true,
+    activity: 'tuning',
+  },
   {
     id: 'metronome',
     title: 'nav.metronome',
@@ -32,6 +44,7 @@ export const FEATURES: Feature[] = [
     component: MetronomeScreen,
     primary: true,
     tool: true,
+    activity: 'rhythm',
   },
   {
     id: 'chords',
@@ -41,8 +54,10 @@ export const FEATURES: Feature[] = [
     component: ChordsScreen,
     primary: true,
     tool: true,
+    activity: 'chords',
   },
-  { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings, primary: true },
+  { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
+  { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },
 ];
 
 export function findFeature(id: string): Feature {

@@ -1,9 +1,29 @@
 import { useEffect } from 'preact/hooks';
+import { clockText } from './features/log/stats';
+import { activeSession } from './features/log/tracker';
 import { FEATURES, findFeature } from './features/registry';
 import { t } from './i18n';
 import { href, route } from './router';
 import { settings } from './settings';
 import { Icon } from './ui/Icon';
+
+/** Oturum sürerken her ekranda görünen küçük sayaç; günlüğe götürür. */
+function SessionPill() {
+  const s = activeSession.value;
+  if (!s) return null;
+  const text = clockText(s.seconds);
+  return (
+    <a
+      class={`pill ${s.paused ? 'paused' : ''}`}
+      href={href('log')}
+      aria-label={t('log.pill', { d: text })}
+      data-testid="session-pill"
+    >
+      <Icon name="timer" size={18} />
+      <span>{text}</span>
+    </a>
+  );
+}
 
 export function App() {
   const current = findFeature(route.value.id);
@@ -38,6 +58,17 @@ export function App() {
       <main class="main">
         <header class="topbar">
           <h1 data-testid="page-title">{title}</h1>
+          <div class="topbar-actions">
+            <SessionPill />
+            <a
+              class={`icon-link topbar-settings ${current.id === 'settings' ? 'active' : ''}`}
+              href={href('settings')}
+              aria-label={t('nav.settings')}
+              data-testid="open-settings"
+            >
+              <Icon name="settings" />
+            </a>
+          </div>
         </header>
         <Screen key={current.id} />
       </main>

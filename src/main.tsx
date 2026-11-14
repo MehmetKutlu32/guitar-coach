@@ -1,13 +1,19 @@
+import { effect } from '@preact/signals';
 import { render } from 'preact';
 import { App } from './app';
 import { loadPersistent } from './db/persist';
 import { installDebugHooks } from './debug';
+import { restoreSession, setCurrentActivity } from './features/log/tracker';
+import { findFeature } from './features/registry';
+import { route } from './router';
 import { loadSettings } from './settings';
 import './styles/app.css';
 
 async function boot(): Promise<void> {
-  await Promise.all([loadSettings(), loadPersistent()]);
+  await Promise.all([loadSettings(), loadPersistent(), restoreSession()]);
   installDebugHooks();
+  // Ekran değişir değişmez (çizimi beklemeden) süre yeni egzersiz türüne yazılmaya başlar.
+  effect(() => setCurrentActivity(findFeature(route.value.id).activity ?? 'free'));
   render(<App />, document.getElementById('app')!);
 
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {

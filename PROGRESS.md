@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-14 · Biten aşama: **3 / 16** · Sıradaki: **Aşama 4 — Pratik günlüğü**
+Son güncelleme: 2026-11-14 · Biten aşama: **4 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 5 — Backing track üretici**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -11,8 +11,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 1 | İskelet + akort aleti | ✅ bitti |
 | 2 | Metronom + ritim kalıpları | ✅ bitti |
 | 3 | Akor kütüphanesi + geçiş egzersizi | ✅ bitti |
-| 4 | Pratik günlüğü | ⏳ sırada |
-| 5 | Backing track üretici | — |
+| 4 | Pratik günlüğü | ✅ bitti |
+| 5 | Backing track üretici | ⏳ sırada |
 | 6 | Çalarken geri bildirim — ritim | — |
 | 7 | Çalarken geri bildirim — akor | — |
 | 8 | Akıllı günlük plan | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 44 / 44 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 36 / 36 |
+| Vitest (birim) | ✅ 57 / 57 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 40 / 40 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -87,6 +87,15 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Geçiş egzersizi: 3 sn geri sayım, 30/60/120 sn süre, dokunarak ya da sonunda elle sayım,
   sonuç kaydı, rekor bildirimi, çift başına istatistik + çizgi grafik, tüm çiftlerin listesi.
 
+### Aşama 4 — Pratik günlüğü
+- Oturum zamanlayıcı: başlat / duraklat / bitir. Oturum sürerken araçlar arasında gezilebilir; süre, açık olan
+  ekrana göre egzersiz türüne (akort, metronom ve ritim, akorlar, serbest) kendiliğinden yazılır.
+- Üst çubukta her ekranda görünen oturum sayacı. Yarım kalan oturum yeniden açılışta duraklatılmış olarak geri gelir.
+- Günlük seri (bugün ya da dün biten), en uzun seri, bugün ve son 7 gün toplamları.
+- Haftalık (7 gün) ve aylık (30 gün) çubuk grafik; döneme göre egzersiz dağılımı.
+- Son oturumlar listesi, silme, uygulama dışındaki çalışmayı elle ekleme.
+- Mobil alt çubuk: Ana sayfa, Akort, Metronom, Akorlar, Günlük. Ayarlar üst çubuktaki simgeye taşındı.
+
 ## Bilinen eksikler / hatalar
 
 - **GitHub'a push edilmedi, site yayınlanmadı.** `gh` CLI bu makinede giriş yapmamış. Tüm commit'ler yerelde.
@@ -95,6 +104,8 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Gecikme kalibrasyonu henüz yok; Aşama 6'da eklenecek (bkz. DECISIONS.md).
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - Geçiş egzersizinde sayım şimdilik elle (dokunarak ya da sonunda girerek); otomatik sayım Aşama 7'de.
+- Oturum sayacı, uygulama görünür değilken (ekran kilitli, başka sekme) süre biriktirmez: iki sayım arası en çok
+  5 sn sayılır. Ekran kapalıyken çalışılan süre günlüğe eksik yansır; gerekirse elle eklenebilir.
 - Metronom yalnızca kendi ekranı açıkken çalar; başka ekrana geçince durur (bilinçli karar).
 
 ## Devam edecek kişi için notlar
@@ -109,5 +120,9 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Uçtan uca testlerde farklı giriş sinyali için `useSyntheticInput()`; ölçüm kancaları `window.__gitar`
   (`src/debug.ts`): metronom günlüğü, çıkış seviyesi, bekleyen yazmaları bitirme (`flush`).
 - Süreli egzersiz testlerinde `page.clock.install()` + `fastForward()` kullanılır (bkz. `chords.spec.ts`).
+- Yeni ekran günlükte ayrı bir egzersiz türü olarak sayılacaksa: `registry.ts`'te `activity`, `Log.tsx`'te
+  `ACTIVITIES`, i18n'de `activity.<ad>`. Günlük hesapları: `src/features/log/stats.ts`.
+- Sahte saatle (`page.clock`) testte: saat durdurulmuşsa Preact `useEffect`'leri de bekler; ölçüm bitince
+  `page.clock.resume()` çağır. Sayfa geçişinden sonra `runFor`'dan önce başlığın değiştiğini bekle.
 - Akor verisi ve teori: `src/music/chords.ts`, `src/music/theory.ts`. Grafikler: `src/ui/charts.tsx`.
 - Windows'ta Git Bash heredoc'ları tek tırnak sayısı tek olunca bozuluyor; dosyaları doğrudan yaz.

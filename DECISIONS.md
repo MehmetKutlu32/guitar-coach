@@ -95,6 +95,24 @@
 - **Kalıcı durum yazmaları sıraya alınır** (`persist.ts`): art arda gelen güncellemelerde son değerin kalıcı olması
   ve testlerin yeniden yüklemeden önce yazmanın bittiğini bekleyebilmesi için.
 
+## Pratik günlüğü
+
+- **Süre, açık olan ekrana göre kendiliğinden ayrılır.** Kullanıcı her egzersiz için ayrı sayaç başlatmak zorunda
+  kalmaz: tek oturum başlatır, araçlar arasında gezer. Eşleme özellik kaydındaki `activity` alanındadır.
+- **Egzersiz türü, çizimi beklemeden değişir** (sinyal `effect`'i, `useEffect` değil): ekran geçişinde süre yanlış
+  türe yazılmasın diye.
+- **İki sayım arasında en çok 5 sn sayılır.** Cihaz uyursa ya da sekme gizlenirse geçen süre çalışma sayılmaz;
+  aksi halde açık unutulan oturum günlüğü şişirirdi. Bedeli: ekran kapalıyken çalışılan süre sayılmaz.
+- **Seri, bugün henüz çalışılmadıysa dünden sayılır**; gün bitmeden seri "bozulmuş" görünmez. Bir günün sayılması
+  için o gün toplam en az 1 dakika gerekir.
+- **10 saniyeden kısa oturumlar kaydedilmez** (yanlışlıkla başlat/bitir).
+- **Yarım kalan oturum duraklatılmış olarak geri gelir**, kendiliğinden devam etmez: uygulama kapalıyken geçen
+  süre çalışma değildir; kullanıcı devam etmeyi ya da bitirmeyi seçer.
+- **Gün anahtarları yerel saate göredir** (`YYYY-AA-GG`); gün ekleme öğlen saatinden yapılır ki yaz saati
+  geçişlerinde gün atlanmasın.
+- **Mobil alt çubukta en çok 5 öğe.** Günlük eklenince Ayarlar üst çubuktaki simgeye taşındı; sonraki araçlar ana
+  sayfadaki listeden (masaüstünde yan menüden) açılır.
+
 ## Test
 
 - **Playwright, derlenmiş sürüme (`vite preview`) karşı çalışır**: service worker ve gerçek paket test edilsin diye.
