@@ -13,6 +13,7 @@ import { Settings } from './settings/Settings';
 import { SongsScreen } from './songs/Songs';
 import { TabsScreen } from './tabs/Tabs';
 import { TheoryScreen } from './theory/Theory';
+import { TracksScreen } from './tracks/Tracks';
 import { Tuner } from './tuner/Tuner';
 
 export interface Feature {
@@ -124,6 +125,15 @@ export const FEATURES: Feature[] = [
     icon: 'record',
     component: RecorderScreen,
     tool: true,
+  },
+  {
+    id: 'track',
+    title: 'nav.track',
+    desc: 'home.track.desc',
+    icon: 'file',
+    component: TracksScreen,
+    tool: true,
+    activity: 'song',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

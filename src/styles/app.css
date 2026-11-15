@@ -2588,3 +2588,30 @@ a.btn {
 .take .waveform {
   background: transparent;
 }
+
+/* ---------- Ses dosyasıyla çalışma ---------- */
+
+.waveform-region {
+  fill: rgba(245, 165, 36, 0.22);
+}
+
+.transport {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.transport .btn {
+  min-width: 0;
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.field .transport {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.btn.marked {
+  border-color: var(--accent);
+  color: var(--accent);
+}

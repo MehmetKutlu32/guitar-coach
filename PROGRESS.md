@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **13 / 16** (Katman 1, 2 ve 3 tamam) · Sıradaki: **Aşama 14 — Kendi ses dosyasıyla çalışma**
+Son güncelleme: 2026-11-16 · Biten aşama: **14 / 16** (Katman 1, 2 ve 3 tamam) · Sıradaki: **Aşama 15 — Oyunlaştırma**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -21,8 +21,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 11 | Fretboard ve teori | ✅ bitti |
 | 12 | Kulak eğitimi | ✅ bitti |
 | 13 | Kayıt ve karşılaştırma | ✅ bitti |
-| 14 | Kendi ses dosyasıyla çalışma | ⏳ sırada |
-| 15 | Oyunlaştırma | — |
+| 14 | Kendi ses dosyasıyla çalışma | ✅ bitti |
+| 15 | Oyunlaştırma | ⏳ sırada |
 | 16 | Canlı efektler | — |
 
 ## Test sonuçları (son çalıştırma)
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 193 / 193 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 110 / 110 |
+| Vitest (birim) | ✅ 218 / 218 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 116 / 116 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -109,6 +109,26 @@ açık tanıma. "Doğru" = tanınan simge çalınan biçimin simgesiyle aynı. V
 **Bu sayılar kendi sentez sesimizle ölçüldü ve iyimserdir.** Sentez telin harmonikleri düzgün, gövde rezonansı,
 tel vızıltısı, amfi distorsiyonu yok. Sıkıştırma üssü (0,3) ve şablon ağırlıkları bu sinyallerle ayarlandı; gerçek
 gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
+
+### Zaman esnetme ve ton değiştirme (Aşama 14)
+
+WSOLA + yeniden örnekleme (`src/dsp/stretch.ts`), 44,1 kHz, üretilmiş sinyaller. Değerler en kötü durumdur.
+
+| Ölçüm | Sonuç |
+|-------|-------|
+| Hız ×0,5 – ×1,5, sinüs 82–880 Hz: perde sapması | en fazla 0,67 cent; genlik kararlılığı 0,97 |
+| Hız ×0,5, Karplus-Strong tel: özgün sese göre perde sapması | 0,40 cent |
+| Ton −12 … +12 yarım ton (hız ×1): istenen perdeden sapma | en fazla 0,43 cent; süre değişmiyor |
+| Hız ×1, ton 0 | sinyal örnek örnek aynı (fark < 1e-5) |
+| Çalınmış nota dizisi: vuruşlar arası sürelerin sapması (çıkış zamanı) | ×0,5: 7,8 ms · ×0,75: 8,9 ms · ×1,25: 11,7 ms |
+| Kısa vuruşların (4 ms gürültü patlaması) derli topluluğu, ×0,5 (1 = tek vuruş) | vuruş korumalı 0,91 · korumasız 0,48 (çift vuruş) |
+| İşlem hızı (masaüstü, tek çekirdek) | gerçek zamanın en az 106 katı |
+| Uçtan uca (tarayıcıda, worklet): %50 hızda konum ilerleme hızı | 0,496 – 0,503 (beklenen 0,5) |
+| Uçtan uca: %50 hızda 440 Hz bölümün çıkış perdesi | 439,8 – 440,5 Hz |
+| Uçtan uca: +2 yarım ton (beklenen 493,88 Hz) | 493,2 – 494,1 Hz |
+
+Bu ölçümler tek sesli ve temiz sinyallerle yapıldı; gerçek, çok sesli ve davullu kayıtlarda kalite kulakla
+değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
 
 ## Yapılanlar
 
@@ -245,6 +265,20 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 Ölçüm (uçtan uca, üretilmiş 220 Hz giriş): kayıt çözülünce ortasındaki perde 219,9–220,1 Hz, ~1,7 sn'lik kayıt
 ~21 kB (~12 kB/sn). Çalarken çıkıştaki perde 220 Hz ±3; A/B geçişinde çıkış 220 ↔ 330 Hz arasında değişiyor.
 
+### Aşama 14 — Kendi ses dosyasıyla çalışma
+- "Ses dosyası" ekranı: cihazdan ses dosyası seçme (tarayıcının çözebildiği biçimler: MP3, WAV, M4A, OGG…;
+  en çok 20 MB ve 12 dakika), dalga formu, konum (onda bir saniye), çal / duraklat, ±5 sn atlama, dalga formuna
+  dokunarak konum seçme.
+- Tonu bozmadan hız: %25–%150 (5'lik adımlar, %50 / %75 / %100 kısayolları); çalarken değişir.
+- Hızı bozmadan ton: −12 … +12 yarım ton; çalarken değişir.
+- A–B döngüsü: o anki konumu A / B olarak işaretleme, döngü bölgesi dalga formunda vurgulu, döngü dönüşü çapraz
+  geçişli (tıkırtısız), döngüyü kaldırma. Atlama düğmeleri döngü içinde kalır.
+- Parça kütüphanesi: dosya cihazda saklanır (`items` + `blobs`, base64), hız / ton / döngü ayarları parçayla
+  birlikte kalıcıdır; parça silme. Saklama başarısız olursa parça o oturumda yine de çalınır.
+- Motor: gerçek zamanlı WSOLA zaman esnetme + kübik yeniden örnekleme, AudioWorklet içinde
+  (`src/audio/stretch.worklet.ts`); vuruş koruma (ataklar özgün hızda geçilir, çiftlenmez).
+- Ölçümler: yukarıda "Zaman esnetme ve ton değiştirme" tablosu.
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -258,7 +292,16 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - **Aşama 9 ve sonrası GitHub'a gönderilmedi** (kullanıcı isteği, 2026-11-15: "push atma"). Commit'ler yerelde;
   `git status -sb` kaç commit ileride olduğunu gösterir.
-- **Aşama 11, 12 ve 13 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- **Aşama 11–14 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- Ses dosyası: esnetme kalitesi yalnızca ölçümle doğrulandı, **gerçek müzik kaydıyla kulakla dinlenmedi**.
+  WSOLA zaman alanında çalışır; yoğun çok sesli miksajlarda ve %50'nin altındaki hızlarda pürüz/yankılanma,
+  büyük ton kaydırmalarda (±5 yarım ton üstü) tını değişimi (formant kayması) beklenir. Ses tek kanala indirilir
+  (stereo yok). Dosyanın tamamı bellekte çözülür (12 dakika ≈ 130 MB geçici bellek); telefonda büyük dosyalarda
+  yük ve bellek ölçülmedi. Biçim desteği tarayıcıya bağlı. Sesler base64 saklandığı için JSON yedeği büyür.
+  Döngü uçları yalnızca "şimdiki konum"dan ayarlanır (ince ayar düğmesi yok); döngü tempoya/ölçüye hizalanmaz.
+- **Günlük ve plan uçtan uca testleri gece yarısını geçerken kalabilir** (gerçek saate göre "bugün"ü kullanıyorlar;
+  2026-11-15 23:59'da başlayan tam çalıştırmada mobilde 2 test kaldı, hemen yeniden çalıştırınca geçti).
+  Uygulama hatası değil; testler sabit saatle (`page.clock`) çalışacak biçimde düzeltilmedi.
 - Kayıt: yalnızca başsız Chromium'da sınandı (Opus/WebM). Safari/iOS'ta MediaRecorder MP4/AAC üretir; bu yol
   ve gerçek mikrofonla kayıt denenmedi. Kayıt yalnızca kendi ekranı açıkken alınır (ekrandan çıkınca atılır);
   metronom ya da eşlikle birlikte kayıt, kırpma (trim), ses dosyası olarak dışa aktarma yok. Sesler base64
@@ -314,6 +357,10 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Kayıt: giriş düğümü `inputNode()` (`src/audio/input.ts`), kayıt motoru `src/audio/recorder.ts`, çözme ve
   senkron A/B çalma `src/features/recorder/player.ts`, saf hesaplar `takes.ts`, dalga formu `src/ui/Waveform.tsx`.
   Aşama 14 (ses dosyası) `decodeAudio` + `Waveform`'u, Aşama 16 (canlı efektler) `inputNode()`'u kullanabilir.
+- Zaman esnetme: saf sınıf `TimeStretcher` (`src/dsp/stretch.ts`; akış biçiminde, worklet ve testlerde aynı kod),
+  worklet `src/audio/stretch.worklet.ts`, ana iş parçacığı tarafı `src/features/tracks/engine.ts` (durum:
+  `trackPlayback` sinyali). Uçtan uca testte dosya yükleme: `tracks.spec.ts` (testte üretilen WAV +
+  `setInputFiles`).
 - Çıkan sesin perdesini uçtan uca ölçmek için `window.__gitar.outputFreq()`; kayıtlı sesi ölçmek için
   `analyzeTake(id)`. Testte giriş sinyalini sayfa açıkken değiştirmek için bkz. `recorder.spec.ts` (`setInputFreq`).
 - Uçtan uca testte veritabanına hazır veri koymak için bkz. `ear.spec.ts` ("son seviye" testi): sayfada

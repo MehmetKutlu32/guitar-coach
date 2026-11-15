@@ -12,6 +12,8 @@ export function Waveform(props: {
   title: string;
   testid?: string;
   height?: number;
+  /** Vurgulanacak bölüm (0..1 başlangıç ve bitiş): A–B döngüsü. */
+  region?: [number, number] | null;
   /** Aynı sayfadaki dalga formlarını ayırmak için (kırpma maskesi kimliği). */
   uid: string;
 }) {
@@ -52,6 +54,16 @@ export function Waveform(props: {
           : undefined
       }
     >
+      {props.region && (
+        <rect
+          x={props.region[0] * W}
+          y="0"
+          width={Math.max(0, props.region[1] - props.region[0]) * W}
+          height={h}
+          class="waveform-region"
+          data-testid={props.testid ? `${props.testid}-region` : undefined}
+        />
+      )}
       <line x1="0" x2={W} y1={mid} y2={mid} class="waveform-axis" />
       <path d={d} class="waveform-bars" stroke-width={bar} />
       {cursor !== null && (

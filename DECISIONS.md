@@ -159,6 +159,32 @@
 - **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
   1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
 
+## Kendi ses dosyasıyla çalışma
+
+- **Zaman esnetme: WSOLA (zaman alanı), faz vokoder değil.** Tek enstrüman ve çalışma amaçlı yavaşlatmada WSOLA
+  perdeyi ve atakları iyi korur, ucuzdur (ölçülen: gerçek zamanın 100+ katı) ve gecikmesi düşüktür; faz vokoder
+  çok sesli miksajda daha pürüzsüzdür ama "fazlı/sulu" tını ve atak yayılması yapar, maliyeti de yüksektir.
+  WebAssembly'ye gerek görülmedi.
+- **Ton değiştirme = esnetme + yeniden örnekleme.** Ton oranı r için ses r katı uzatılır, sonra r oranında hızlı
+  okunur (kübik enterpolasyon). Tek algoritma hem hızı hem tonu karşılar. Bedeli: formantlar da kayar; büyük
+  kaydırmalarda tını değişir. Kapo/akort farkı için gereken birkaç yarım tonda sorun değil.
+- **Vuruş koruma eklendi.** Düz WSOLA yavaşlatırken atakları iki kez çalıyordu (ölçüldü: 20–30 ms arayla çift
+  vuruş). Girişteki ani enerji artışları önceden bulunur; her atağın çevresi özgün hızda geçilir ve o bölgeye
+  geri dönülmez. Zincirin başlangıcı nominal konuma göre hesaplandığı için tüm ataklar aynı miktarda kayar,
+  vuruşlar arası süreler korunur (ölçülen sapma ≤ 12 ms). Ataklar çok sıksa (koruma çalmayı istenen hızın
+  120 ms'den fazla önüne geçirecekse) o atak korunmaz: tempo doğruluğu, atak temizliğinden önce gelir.
+- **Vuruş dedektörü önceki ~60 ms'nin ortalamasına bakar.** İlk sürüm (24 ms) iki notanın vuruşmasını (beating)
+  atak sanıyordu; test yakaladı.
+- **Gerçek zamanlı, AudioWorklet içinde** (dosyanın tamamını önceden işlemek yerine): hız/ton/döngü çalarken
+  anında değişir, uzun dosyada bekleme olmaz. Ses verisi worklet'e bir kez aktarılır (kopyalanmaz).
+- **Ses tek kanala indirilir.** Bellek yarıya iner ve iki kanalı ayrı esnetmenin yol açacağı faz kayması olmaz;
+  çalışma aracı için stereo görüntü gerekli değil.
+- **A–B döngüsünde dönüş, pencere örtüşmesiyle kendiliğinden çapraz geçiş yapar** (ayrı bir kısma/açma yok):
+  döngü sonundaki pencerenin kuyruğu, baştaki pencereyle toplanır.
+- **Dosya cihazda saklanır ve ayarlar parçayla birlikte tutulur**: ertesi gün aynı döngüye, aynı hızda dönmek
+  bu ekranın asıl kullanım biçimi. Sınırlar (20 MB, 12 dakika) bellek ve yedek boyutu için.
+- **Bu ekranda geçen süre günlükte "şarkı" türüne yazılır** (ayrı bir tür açılmadı).
+
 ## Kayıt ve karşılaştırma
 
 - **Kayıt MediaRecorder ile sıkıştırılmış alınır** (Opus/WebM, 96 kbit/sn; yoksa tarayıcının desteklediği biçim),
