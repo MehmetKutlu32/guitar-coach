@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **8 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 9 — Şarkı modu**
+Son güncelleme: 2026-11-15 · Biten aşama: **9 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 10 — Tab editörü ve oynatıcı**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -16,8 +16,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 6 | Çalarken geri bildirim — ritim | ✅ bitti |
 | 7 | Çalarken geri bildirim — akor | ✅ bitti |
 | 8 | Akıllı günlük plan | ✅ bitti |
-| 9 | Şarkı modu | ⏳ sırada |
-| 10 | Tab editörü ve oynatıcı | — |
+| 9 | Şarkı modu | ✅ bitti |
+| 10 | Tab editörü ve oynatıcı | ⏳ sırada |
 | 11 | Fretboard ve teori | — |
 | 12 | Kulak eğitimi | — |
 | 13 | Kayıt ve karşılaştırma | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 130 / 130 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 70 / 70 |
+| Vitest (birim) | ✅ 143 / 143 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 80 / 80 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -183,6 +183,16 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
   seviyeye göre ve günden güne değişir.
 - Maddeler elle işaretlenir; bugün kaydedilen geçiş ve ritim sonuçları maddeyi kendiliğinden tamamlar.
 
+### Aşama 9 — Şarkı modu
+- ChordPro ayrıştırıcı: başlık, sanatçı, ton, tempo, kapo, yorum ve bölüm (kıta / nakarat / köprü) yönergeleri.
+- Akorlar sözlerin tam üstünde; yazı boyutu ayarı; şarkıdaki akorların diyagramları (dokununca çalar).
+- Transpoze (±11 yarım ton) ve kapo (gösterilen akor = basılan biçim; duyulan ton değişmez).
+- "Çal ve kaydır": bir ölçü sayar, geçerli akoru vurgular, geçerli satırı ekranın ortasında tutar, şarkı
+  bitince durur. Grup eşlik eder ya da (kapatılırsa) yalnızca metronom tıkı çalar; tarz ve tempo seçilir.
+- Akor denetimi (isteğe bağlı): çalarken doğru basılan akorlar yeşile döner, sonunda isabet gösterilir.
+- Şarkı ekleme / düzenleme (canlı önizleme, tanınmayan akor uyarısı) / silme; hazır şarkıyı kopyalayıp düzenleme.
+- Üç hazır çalışma şarkısı; sözleri ve akor düzenleri bu uygulama için yazıldı.
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -194,6 +204,10 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - **Yayınlanmış site duman testi hiç çalıştırılamadı** (site yok). Site açılınca:
   `SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke`.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
+- **Aşama 9 ve sonrası GitHub'a gönderilmedi** (kullanıcı isteği, 2026-11-15: "push atma"). Commit'ler yerelde;
+  `git status -sb` kaç commit ileride olduğunu gösterir.
+- Şarkı modunda her akor aynı sürer ("akor başına vuruş"); ChordPro süre taşımadığı için akorların gerçek ritmi
+  girilemez. Günlük plan henüz şarkı önermiyor.
 - Seviye testi öz değerlendirmedir (çalarak ölçüm yok). Plan yalnızca Katman 1–2 araçlarını kullanır; şarkı, tab,
   sap ve kulak eğitimi maddeleri o aşamalar bitince eklenecek.
 - Akor tanıma yalnızca sentez sesle doğrulandı (yukarıdaki nota bak). Tanınmayan türler: dim, aug, 6, 9, m7b5 ve

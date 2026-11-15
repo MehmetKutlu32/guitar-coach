@@ -159,6 +159,24 @@
 - **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
   1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
 
+## Şarkı modu
+
+- **Hazır içerik yalnızca kendi yazdığımız çalışma şarkıları.** CLAUDE.md telifsiz (kamu malı) örneklere izin
+  veriyor, ama hangi sözün/düzenlemenin gerçekten kamu malı olduğunu bu oturumda doğrulamak mümkün değil;
+  yanlışlıkla telifli bir düzenleme eklemek yerine sözleri ve akor dizilerini sıfırdan yazdık.
+- **ChordPro süre taşımaz; her akor eşit sürer** ("akor başına vuruş": 1, 2, 4 ya da 8). Ölçü çizgisi ya da
+  akor süresi için standart dışı bir sözdizimi icat etmek, başka yerden kopyalanan ChordPro metinlerini bozardı.
+- **Transpoze duyulan tonu, kapo yalnızca gösterilen biçimi değiştirir.** Gösterilen akor = yazılan + transpoze −
+  kapo; eşlik = yazılan + transpoze. Böylece "+2 transpoze, 2. perdede kapo" aynı parmak biçimleriyle çalınır.
+- **Ayarlar şarkı başına ve ayrı saklanır** (kalıcı durum), şarkı kaydının içinde değil: hazır şarkıların ayarları
+  da kalıcı olsun ve metin düzenlenince ayarlar kaybolmasın diye.
+- **Otomatik kaydırma, çalma konumunu izler** (zamanlayıcıyla sabit hızda kaydırmak yerine): geçerli akorun
+  satırı ekranın ortasına getirilir. Tempo değişince ya da satırlar farklı uzunlukta olunca da doğru kalır.
+- **Çalma motoru eşlik grubudur** (`BackingPlayer`); grup kapatılınca seviyeler sıfırlanır ve metronom tıkı
+  açılır. Sayma ve tıklar artık davul seviyesinden bağımsız, doğrudan ana çıkıştan çalar.
+- **Hazır şarkılar düzenlenemez, kopyalanır.** Güncellemelerde hazır içeriği değiştirebilmek ve kullanıcının
+  değişikliklerini ezmemek için.
+
 ## Günlük plan
 
 - **Seviye testi bir öz değerlendirme anketi** (6 soru, ~1 dakika), çalarak ölçüm değil. İlk açılışta mikrofon

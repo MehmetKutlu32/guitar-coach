@@ -21,6 +21,8 @@ export interface BackingConfig {
   /** Başlamadan önce bir ölçü sayma. */
   countIn: boolean;
   levels: BandLevels;
+  /** Her vuruşta metronom tıkı da çalınsın mı (grup sesi kapalıyken nabız için). */
+  click?: boolean;
 }
 
 export interface BackingPosition {
@@ -147,9 +149,13 @@ export class BackingPlayer {
     if (!pos) return;
     this.onPlannedStep?.(event, pos);
     const buses = this.ensureBuses();
+    // Sayma ve nabız tıkları davul seviyesinden bağımsızdır: grup kısılsa da duyulur.
     if (pos.countIn) {
-      if (event.sub === 0) scheduleClick(ctx, buses.drums, event.time, event.beat === 0 ? 'accent' : 'beat');
+      if (event.sub === 0) scheduleClick(ctx, masterOut(), event.time, event.beat === 0 ? 'accent' : 'beat', 0.7);
       return;
+    }
+    if (cfg.click && event.sub === 0) {
+      scheduleClick(ctx, masterOut(), event.time, event.beat === 0 ? 'accent' : 'beat', 0.6);
     }
     const tick = event.beat * TICKS_PER_BEAT + event.sub;
     const spb = 60 / event.bpm;

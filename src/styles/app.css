@@ -1954,3 +1954,125 @@ a.list-row {
 a.btn {
   text-decoration: none;
 }
+
+/* ---------- Şarkılar ---------- */
+
+.songs-view,
+.songs-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.song-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.song-title {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.song-row {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.lyrics {
+  line-height: 1.25;
+}
+
+.ly-line {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 3px 0 5px;
+  scroll-margin: 120px;
+}
+
+.ly-line.chorus {
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
+}
+
+.ly-seg {
+  display: inline-flex;
+  flex-direction: column;
+  white-space: pre;
+}
+
+.ly-chord {
+  align-self: flex-start;
+  min-height: 1.3em;
+  padding: 0 4px;
+  margin-left: -4px;
+  border-radius: 6px;
+  font-size: 0.92em;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.ly-chord.hit {
+  color: var(--good);
+}
+
+.ly-chord.now {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.ly-gap {
+  height: 0.9em;
+}
+
+.ly-comment {
+  padding: 4px 0;
+  font-size: 0.82em;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.ly-section {
+  padding-top: 6px;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.song-play {
+  position: sticky;
+  bottom: calc(var(--nav-h) + 10px + env(safe-area-inset-bottom));
+  z-index: 4;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+}
+
+.song-text {
+  min-height: 260px;
+  font-size: 15px;
+}
+
+.song-shapes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.chord-name.small {
+  font-size: 18px;
+}
+
+@media (min-width: 900px) {
+  .songs-view,
+  .songs-edit {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .song-play {
+    bottom: 16px;
+  }
+}
