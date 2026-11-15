@@ -137,6 +137,28 @@
 - **Ayar yazmaları da sıraya alındı** (`queueWrite`): ayar değişikliğinden hemen sonra sayfa kapanırsa son değerin
   kaybolmaması ve testlerin `flush()` ile bekleyebilmesi için.
 
+## Akor tanıma
+
+- **Kroma, spektral tepelerden** (HPCP benzeri): 170 ms pencere (kalın tellerin temel seslerini ayırmak için),
+  tepe frekansı parabolik ara değerlemeyle inceltilir, her tepe en yakın perde sınıflarına cos² ağırlığıyla
+  dağıtılır. Tüm spektrumu toplamak yerine tepeleri kullanmak gürültüyü ve akortsuzluğu tolere eder.
+- **Şablonlar harmonikleri içerir.** Do majörde Mi'nin 3. harmoniği Si'dir; düz (yalnızca akor notaları) şablonla
+  bu Cmaj7 sanılır. Her notanın ilk altı harmoniğinin düştüğü perde sınıfları şablona azalan ağırlıkla eklenir.
+- **Bas notası ayrı ölçülür** ve kök ile aynıysa küçük bir puan ekler. Aynı notalardan oluşan akorlar
+  (Asus2 = A B E, Esus4 = E A B) yalnızca böyle ayrılır.
+- **Kroma 0,3. kuvvetle sıkıştırılır.** Karekökle (0,5) zayıf çınlayan üçlüler kayboluyor, akor power akor
+  sanılıyordu (açık akorlarda %94). 0,3 ile %98,9; 0,25 ile %100 oldu. 0,25 kendi sentez sesimize aşırı uyum
+  riski taşıdığı için 0,3 seçildi.
+- **İki ayrı görev, iki ayrı karar kuralı.** Açık tanıma (108 aday) dinleyicide gösterim içindir. Egzersizde
+  adaylar bellidir (iki akor): `pickTarget` yalnızca onları karşılaştırır, benzerlik eşiği ve aradaki fark payı
+  ister. Bu çok daha güvenilirdir ve ilgisiz akoru / sessizliği "hiçbiri" sayar.
+- **Geçiş, akor üç kare (~130 ms) üst üste duyulunca sayılır**; tek karelik sıçramalar ve aynı akorun yeniden
+  vurulması geçiş değildir. Sayım yalnızca süre işlerken yapılır (geri sayımda çalınanlar sayılmaz).
+- **Otomatik sayım isteğe bağlı ve düzeltilebilir.** Tanıma gerçek gitarda doğrulanmadığı için varsayılan elle
+  sayımdır; otomatik sayımda da sonuç ekranında sayı değiştirilebilir.
+- **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
+  1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
+
 ## Pratik günlüğü
 
 - **Süre, açık olan ekrana göre kendiliğinden ayrılır.** Kullanıcı her egzersiz için ayrı sayaç başlatmak zorunda

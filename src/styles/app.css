@@ -1763,3 +1763,56 @@ a.list-row {
     align-items: start;
   }
 }
+
+/* ---------- Akor dinleyici ---------- */
+
+.heard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.heard-chord {
+  min-height: 76px;
+  font-size: 68px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent);
+}
+
+.pair-chord {
+  border: 2px solid transparent;
+}
+
+.pair-chord.heard-now {
+  border-color: var(--good);
+  background: rgba(61, 220, 132, 0.12);
+}
+
+/* Dinlerken kart ekranın üstüne yapışır: aşağıdaki diyagramlara dokunurken geri bildirim görünür kalır. */
+.listener-on {
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+  gap: 8px;
+  padding: 12px;
+  border-color: var(--accent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+.listener-on .heard {
+  flex-direction: row;
+  justify-content: center;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.listener-on .heard-chord {
+  min-height: 52px;
+  font-size: 44px;
+}
+
+.listener-on .notice {
+  padding: 8px 12px;
+}

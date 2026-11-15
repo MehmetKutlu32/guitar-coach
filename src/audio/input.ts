@@ -25,11 +25,22 @@ export interface OnsetEvent {
   strength: number;
 }
 
+export interface ChromaEvent {
+  time: number;
+  /** 12 perde sınıfının göreli gücü (C … B). */
+  chroma: number[];
+  /** Bas notasının perde sınıfı; yoksa -1. */
+  bass: number;
+  rms: number;
+}
+
 type Listener = (frame: AnalysisFrame) => void;
+type ChromaListener = (event: ChromaEvent) => void;
 type OnsetListener = (onset: OnsetEvent) => void;
 const listeners = new Set<Listener>();
 const onsetListeners = new Set<OnsetListener>();
-let analyzerConfig: { pitch: boolean; onset: boolean } = { pitch: true, onset: false };
+const chromaListeners = new Set<ChromaListener>();
+let analyzerConfig: { pitch: boolean; onset: boolean; chroma: boolean } = { pitch: true, onset: false, chroma: false };
 
 let stream: MediaStream | null = null;
 let source: AudioNode | null = null;
@@ -109,10 +120,18 @@ async function start(): Promise<void> {
     await moduleLoaded;
     source = await openSource(ctx);
     node = new AudioWorkletNode(ctx, 'gitar-analyzer', { numberOfInputs: 1, numberOfOutputs: 1 });
-    node.port.onmessage = (e: MessageEvent<(AnalysisFrame & { kind: 'frame' }) | (OnsetEvent & { kind: 'onset' })>) => {
+    node.port.onmessage = (
+      e: MessageEvent<
+        (AnalysisFrame & { kind: 'frame' }) | (OnsetEvent & { kind: 'onset' }) | (ChromaEvent & { kind: 'chroma' })
+      >,
+    ) => {
       const msg = e.data;
       if (msg.kind === 'onset') {
         for (const l of onsetListeners) l(msg);
+        return;
+      }
+      if (msg.kind === 'chroma') {
+        for (const l of chromaListeners) l(msg);
         return;
       }
       inputLevel.value = levelToUnit(msg.peak);
@@ -169,8 +188,13 @@ export function onOnset(listener: OnsetListener): () => void {
   return () => onsetListeners.delete(listener);
 }
 
+export function onChroma(listener: ChromaListener): () => void {
+  chromaListeners.add(listener);
+  return () => chromaListeners.delete(listener);
+}
+
 /** Analiz modlarını aç/kapat (worklet içinde). Giriş henüz açık değilse açılınca uygulanır. */
-export function configureAnalyzer(config: { pitch?: boolean; onset?: boolean }): void {
+export function configureAnalyzer(config: { pitch?: boolean; onset?: boolean; chroma?: boolean }): void {
   analyzerConfig = { ...analyzerConfig, ...config };
   node?.port.postMessage(analyzerConfig);
 }

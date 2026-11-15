@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **6 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 7 — Çalarken geri bildirim (akor)**
+Son güncelleme: 2026-11-15 · Biten aşama: **7 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 8 — Akıllı günlük plan**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -14,8 +14,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 4 | Pratik günlüğü | ✅ bitti |
 | 5 | Backing track üretici | ✅ bitti |
 | 6 | Çalarken geri bildirim — ritim | ✅ bitti |
-| 7 | Çalarken geri bildirim — akor | ⏳ sırada |
-| 8 | Akıllı günlük plan | — |
+| 7 | Çalarken geri bildirim — akor | ✅ bitti |
+| 8 | Akıllı günlük plan | ⏳ sırada |
 | 9 | Şarkı modu | — |
 | 10 | Tab editörü ve oynatıcı | — |
 | 11 | Fretboard ve teori | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 99 / 99 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 58 / 58 |
+| Vitest (birim) | ✅ 112 / 112 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 64 / 64 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -88,6 +88,28 @@ kaçırılan ya da sahte vuruş yok.
 Not: algılayıcının sabit gecikme düzeltmesi bu üretilmiş sinyallerle ayarlandı; gerçek gitarda birkaç ms'lik
 sistematik fark olabilir ve bu fark gecikme kalibrasyonuyla birlikte giderilir.
 
+### Akor tanıma (Aşama 7) — hedef: temiz sinyalde %90+
+
+Sentez gitar sesi (Karplus-Strong), 108 aday akor arasından (12 kök × maj, min, 7, m7, maj7, sus2, sus4, 5, add9)
+açık tanıma. "Doğru" = tanınan simge çalınan biçimin simgesiyle aynı. Vuruştan 0,5 sn sonra dinlenir (aksi yazılmadıkça).
+
+| Koşul | Doğruluk |
+|-------|----------|
+| **Açık akorlar, temiz** — 29 akor × aşağı vuruş, yukarı vuruş, arpej | **%98,9** (86/87; tek hata: Gmaj7 → G) |
+| **Bare akorlar, temiz** — 36 biçim × aşağı ve yukarı vuruş | **%100** (72/72) |
+| **Power akorlar, temiz** — 24 biçim | **%100** (24/24) |
+| Tüm gitar 12 cent pes / 12 cent tiz (açık + bare, 65 akor) | %98,5 / %100 |
+| Tel başına rastgele ±8 cent akortsuzluk | %99,2 |
+| Beyaz gürültü, SNR 20 dB / 10 dB | %100 / %100 |
+| Boğuk ton / parlak ton | %100 / %100 |
+| Vuruştan 0,2 sn sonra / 1,2 sn sonra (sönerken) | %100 / %95,4 |
+| İki aday arasında seçim (geçiş egzersizi): 10 çift × 2 akor × 2 vuruş, 5 cent akortsuzluk + 25 dB gürültü | 40/40 doğru |
+| Geçiş sayımı: Am ↔ C, 6 geçiş (birim testinde sentez ses; tarayıcıda canlı) | 6 / 6 sayıldı |
+
+**Bu sayılar kendi sentez sesimizle ölçüldü ve iyimserdir.** Sentez telin harmonikleri düzgün, gövde rezonansı,
+tel vızıltısı, amfi distorsiyonu yok. Sıkıştırma üssü (0,3) ve şablon ağırlıkları bu sinyallerle ayarlandı; gerçek
+gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
+
 ## Yapılanlar
 
 ### Aşama 1 — İskelet + akort aleti
@@ -142,14 +164,29 @@ sistematik fark olabilir ve bu fark gecikme kalibrasyonuyla birlikte giderilir.
   vuruş başına sapma grafiği. Sonuçlar saklanır; geçmiş grafiği ve listesi.
 - Gecikme kalibrasyonu (Ayarlar): otomatik (hoparlör → mikrofon), çalarak (kulaklık / doğrudan bağlantı), elle.
 
+### Aşama 7 — Çalarken geri bildirim (akor)
+- Kroma çıkarımı (HPCP benzeri, spektral tepelerden) AudioWorklet içinde; ~43 ms'de bir.
+- Akor tanıma: harmonikleri hesaba katan şablonlarla kosinüs benzerliği + bas notası; 108 aday akor.
+- Akor dinleyici (Akorlar → Kütüphane): duyulan akoru gösterir; bir diyagrama dokununca o akorun doğru basılıp
+  basılmadığını denetler. Dinlerken kart ekranın üstünde sabit kalır.
+- Geçiş egzersizinde otomatik sayım: iki akor arasındaki her kararlı geçiş sayılır, duyulan akorun diyagramı
+  vurgulanır; sayı sonunda yine elle düzeltilebilir.
+- Şarkı modundaki "doğru akor" denetimi Aşama 9'da, şarkı moduyla birlikte bağlanacak (`isChordPlayed` hazır).
+
 ## Bilinen eksikler / hatalar
 
-- **GitHub'a push edilmedi, site yayınlanmadı.** `gh` CLI bu makinede giriş yapmamış. Tüm commit'ler yerelde.
-  Kurulum komutları README'de. Her aşama sonunda `gh auth status` yeniden denetleniyor.
-- **CI iş akışı hiç çalışmadı** (yukarıdaki nedenle); Linux'ta başsız Chromium'da ses testlerinin geçtiği doğrulanmadı.
-- Gecikme kalibrasyonu henüz yok; Aşama 6'da eklenecek (bkz. DECISIONS.md).
+- **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
+  `https://mehmetkutlu32.github.io/guitar-coach/` 404 döndü; deponun herkese açık API'si de 404 döndü, yani depo
+  büyük olasılıkla özel. Ücretsiz planda özel depodan Pages yayınlanmaz. Yayın için: depoyu herkese açık yap (ya da
+  Pages destekleyen plan), sonra Settings → Pages → Source: **GitHub Actions**.
+- **CI sonucu bu oturumdan okunamıyor** (`gh` giriş yapmamış, API 404). İş akışının Linux'ta başsız Chromium'da
+  geçip geçmediği doğrulanmadı; GitHub'daki Actions sekmesinden bakılmalı.
+- **Yayınlanmış site duman testi hiç çalıştırılamadı** (site yok). Site açılınca:
+  `SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke`.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
-- Geçiş egzersizinde sayım şimdilik elle (dokunarak ya da sonunda girerek); otomatik sayım Aşama 7'de.
+- Akor tanıma yalnızca sentez sesle doğrulandı (yukarıdaki nota bak). Tanınmayan türler: dim, aug, 6, 9, m7b5 ve
+  bölü akorları (C/G); bunlar en yakın tanınan türe yorumlanır.
+- Akor tanımada da hoparlör sızıntısı sorunu var: eşlik çalarken mikrofon eşliğin akorunu da duyar.
 - Ritim ölçümünde hoparlörden çıkan metronom/eşlik sesi mikrofona girerse vuruş sayılır; kulaklık ya da doğrudan
   bağlantı gerekir (ekranda uyarı var). Bunu ayıklayan bir yankı giderme yok.
 - "Çalarak" gecikme ölçümü kullanıcının kendi zamanlama eğilimini de içerir; yalnızca otomatik ölçüm test edildi.

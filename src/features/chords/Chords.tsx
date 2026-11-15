@@ -1,5 +1,7 @@
+import { effect } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { audioCtx, masterOut, resumeAudio } from '../../audio/engine';
+import { inputStatus } from '../../audio/input';
 import { scheduleClick } from '../../audio/metronome';
 import { strumChord } from '../../audio/synth/guitar';
 import { dbAll, dbPut, newId } from '../../db/db';
@@ -13,13 +15,15 @@ import {
   type ChordCategory,
   type ChordShape,
 } from '../../music/chords';
+import { isChordPlayed, pickTarget, TransitionCounter, type ChordTarget } from '../../music/recognize';
 import { COMMON_NAMES } from '../../music/theory';
 import { navigate, route } from '../../router';
 import { settings } from '../../settings';
 import { LineChart } from '../../ui/charts';
 import { ChordDiagram } from '../../ui/ChordDiagram';
-import { Card, Notice, Segmented, Stepper } from '../../ui/controls';
+import { Card, LevelMeter, Notice, Segmented, Stepper, Toggle } from '../../ui/controls';
 import { Icon } from '../../ui/Icon';
+import { chordListening, heardChord, listenForChords } from './listener';
 import {
   isNewBest,
   isTransitionResult,
@@ -36,6 +40,8 @@ interface ChordsState {
   a: string;
   b: string;
   seconds: number;
+  /** Geçişler mikrofonla otomatik sayılsın mı. */
+  auto: boolean;
 }
 
 export const chordsStore = persistent<ChordsState>('chords', {
@@ -44,6 +50,7 @@ export const chordsStore = persistent<ChordsState>('chords', {
   a: 'Em',
   b: 'G',
   seconds: 60,
+  auto: false,
 });
 
 const CATEGORIES: ChordCategory[] = ['open', 'barre', 'power'];
@@ -77,10 +84,83 @@ function shapeHint(shape: ChordShape): string {
     : t('chords.rootString', { n: shape.rootString, fret });
 }
 
+const asTarget = (shape: ChordShape): ChordTarget => ({ root: shape.root, quality: shape.quality, symbol: shape.symbol });
+
+function InputErrors() {
+  const status = inputStatus.value;
+  if (status === 'denied') return <Notice kind="error" testid="input-error">{t('input.denied')}</Notice>;
+  if (status === 'unavailable') return <Notice kind="error" testid="input-error">{t('input.unavailable')}</Notice>;
+  if (status === 'error') return <Notice kind="error" testid="input-error">{t('input.error')}</Notice>;
+  return null;
+}
+
+/** Mikrofonu dinler, duyulan akoru gösterir ve seçili akorun doğru basılıp basılmadığını denetler. */
+function ChordListener({ target }: { target: ChordShape | null }) {
+  const on = chordListening.value;
+  const heard = heardChord.value;
+  const release = useRef<(() => void) | null>(null);
+
+  useEffect(
+    () => () => {
+      release.current?.();
+      release.current = null;
+    },
+    [],
+  );
+
+  const toggle = async () => {
+    if (release.current) {
+      release.current();
+      release.current = null;
+      return;
+    }
+    try {
+      release.current = await listenForChords();
+    } catch {
+      /* durum sinyali hatayı gösterir */
+    }
+  };
+
+  const played = on && target !== null && heard.sounding && isChordPlayed(heard.chroma, heard.bass, asTarget(target));
+  return (
+    <Card title={on ? undefined : t('listen.title')} class={on ? 'listener-on' : ''} testid="chord-listener">
+      {on ? (
+        <>
+          <div class="heard">
+            <span class="now-label">{t('listen.heard')}</span>
+            <span class="heard-chord" data-testid="heard-chord">
+              {heard.guess?.symbol ?? '–'}
+            </span>
+          </div>
+          {target ? (
+            <Notice kind={played ? 'good' : 'info'} testid="listen-check">
+              {played
+                ? t('listen.match', { name: target.symbol })
+                : heard.guess && heard.guess.symbol !== target.symbol
+                  ? t('listen.wrong', { name: target.symbol, heard: heard.guess.symbol })
+                  : t('listen.expect', { name: target.symbol })}
+            </Notice>
+          ) : (
+            <p class="help center">{t('listen.pick')}</p>
+          )}
+          <LevelMeter />
+        </>
+      ) : (
+        <p class="help">{t('listen.help')}</p>
+      )}
+      <InputErrors />
+      <button type="button" class={`btn block ${on ? '' : 'primary'}`} onClick={toggle} data-testid="listen-toggle">
+        <Icon name={on ? 'stop' : 'mic'} /> {on ? t('listen.stop') : t('listen.start')}
+      </button>
+    </Card>
+  );
+}
+
 function Library() {
   const s = chordsStore.state.value;
   const [last, setLast] = useState('');
   const shapes = chordsFor(s.category, s.root);
+  const target = shapes.find((sh) => sh.id === last) ?? null;
   const play = (shape: ChordShape, arpeggio: boolean) => {
     setLast(shape.id);
     void playShape(shape, arpeggio);
@@ -112,6 +192,7 @@ function Library() {
         )}
         <p class="help">{t('chords.legend')}</p>
       </Card>
+      <ChordListener target={target} />
       <div class="chord-grid" data-testid="chord-grid">
         {shapes.map((shape) => (
           <div class={`chord-card ${last === shape.id ? 'played' : ''}`} data-testid={`chord-${shape.id}`}>
@@ -168,6 +249,9 @@ function Practice() {
   const [count, setCount] = useState(0);
   const [saved, setSaved] = useState<{ rate: number; best: boolean } | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** Otomatik sayım: dinlemeyi ve sinyal aboneliğini kapatan fonksiyon. */
+  const listening = useRef<(() => void) | null>(null);
+  const [heardIndex, setHeardIndex] = useState(-1);
 
   const shapeA = primaryShape(s.a) ?? primaryShape('Em')!;
   const shapeB = primaryShape(s.b) ?? primaryShape('G')!;
@@ -181,14 +265,49 @@ function Practice() {
     if (timer.current !== null) clearInterval(timer.current);
     timer.current = null;
   };
+  const stopListening = () => {
+    listening.current?.();
+    listening.current = null;
+    setHeardIndex(-1);
+  };
 
   useEffect(() => {
     void load();
-    return clearTimer;
+    return () => {
+      clearTimer();
+      listening.current?.();
+      listening.current = null;
+    };
   }, []);
+
+  /** Mikrofonu açar ve iki akor arasındaki her kararlı geçişte sayacı artırır. */
+  const startAutoCount = async (isRunning: () => boolean) => {
+    const targets = [asTarget(shapeA), asTarget(shapeB)];
+    const counter = new TransitionCounter(3);
+    const release = await listenForChords();
+    const off = effect(() => {
+      const h = heardChord.value;
+      if (!isRunning()) return;
+      const index = h.sounding && h.chroma.length === 12 ? pickTarget(h.chroma, h.bass, targets) : -1;
+      if (counter.push(index)) setCount((c) => c + 1);
+      setHeardIndex(counter.current);
+    });
+    listening.current = () => {
+      off();
+      release();
+    };
+  };
 
   const start = async () => {
     const ctx = await resumeAudio();
+    let running = false;
+    if (s.auto) {
+      try {
+        await startAutoCount(() => running);
+      } catch {
+        return;
+      }
+    }
     setSaved(null);
     setCount(0);
     setPhase('countin');
@@ -200,7 +319,6 @@ function Practice() {
     const t0 = performance.now() + 50;
     const startAt = t0 + COUNT_IN * 1000;
     const endAt = startAt + s.seconds * 1000;
-    let running = false;
     clearTimer();
     timer.current = setInterval(() => {
       const nowMs = performance.now();
@@ -214,6 +332,8 @@ function Practice() {
         setDisplay(Math.ceil((endAt - nowMs) / 1000));
       } else {
         clearTimer();
+        running = false;
+        stopListening();
         const c = audioCtx();
         scheduleClick(c, masterOut(), c.currentTime + 0.02, 'accent');
         scheduleClick(c, masterOut(), c.currentTime + 0.2, 'accent');
@@ -225,6 +345,7 @@ function Practice() {
 
   const cancel = () => {
     clearTimer();
+    stopListening();
     setPhase('idle');
   };
 
@@ -238,6 +359,7 @@ function Practice() {
       pair,
       count,
       seconds: s.seconds,
+      auto: s.auto,
     };
     const best = isNewBest(history, record);
     await dbPut('results', record);
@@ -255,10 +377,11 @@ function Practice() {
     <>
       <Card testid="transition">
         <div class="pair">
-          {[shapeA, shapeB].map((shape) => (
+          {[shapeA, shapeB].map((shape, i) => (
             <button
               type="button"
-              class="pair-chord"
+              class={`pair-chord ${active && heardIndex === i ? 'heard-now' : ''}`}
+              data-testid={`pair-chord-${i}`}
               aria-label={t('chords.play', { name: shape.symbol })}
               onClick={() => void playShape(shape)}
             >
@@ -298,7 +421,14 @@ function Practice() {
                 testid="tx-duration"
               />
             </div>
-            <p class="help">{t('tx.intro')}</p>
+            <Toggle
+              label={t('tx.auto')}
+              checked={s.auto}
+              onChange={(auto) => chordsStore.update({ auto })}
+              testid="tx-auto"
+            />
+            <p class="help">{s.auto ? t('tx.autoHelp') : t('tx.intro')}</p>
+            <InputErrors />
             {saved && (
               <Notice kind="good" testid="tx-saved">
                 {t('tx.saved', { n: saved.rate })}
@@ -333,7 +463,16 @@ function Practice() {
               <span class="tx-plus-big">{count}</span>
               <span>{t('tx.plus')}</span>
             </button>
-            <p class="help center">{t('tx.tapHint')}</p>
+            {s.auto ? (
+              <>
+                <p class="help center" data-testid="tx-heard">
+                  {heardIndex >= 0 ? t('tx.heard', { name: [shapeA, shapeB][heardIndex].symbol }) : t('tx.heardNone')}
+                </p>
+                <LevelMeter />
+              </>
+            ) : (
+              <p class="help center">{t('tx.tapHint')}</p>
+            )}
             <button type="button" class="btn block" onClick={cancel} data-testid="tx-cancel">
               <Icon name="stop" /> {t('tx.cancel')}
             </button>
