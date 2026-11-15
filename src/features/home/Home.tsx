@@ -1,13 +1,16 @@
 import { t } from '../../i18n';
-import { href } from '../../router';
+import { href, route } from '../../router';
 import { Icon } from '../../ui/Icon';
+import { LevelTest, TodayPlan } from '../plan/Plan';
 import { FEATURES } from '../registry';
 
 export function Home() {
+  if (route.value.rest[0] === 'test') return <LevelTest />;
   const tools = FEATURES.filter((f) => f.tool);
   return (
     <div class="stack">
       <p class="lead">{t('app.tagline')}</p>
+      <TodayPlan />
       <section>
         <h2 class="section-title">{t('home.tools')}</h2>
         <div class="tool-grid" data-testid="tool-grid">

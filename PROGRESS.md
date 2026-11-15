@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **7 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 8 — Akıllı günlük plan**
+Son güncelleme: 2026-11-15 · Biten aşama: **8 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 9 — Şarkı modu**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -15,8 +15,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 5 | Backing track üretici | ✅ bitti |
 | 6 | Çalarken geri bildirim — ritim | ✅ bitti |
 | 7 | Çalarken geri bildirim — akor | ✅ bitti |
-| 8 | Akıllı günlük plan | ⏳ sırada |
-| 9 | Şarkı modu | — |
+| 8 | Akıllı günlük plan | ✅ bitti |
+| 9 | Şarkı modu | ⏳ sırada |
 | 10 | Tab editörü ve oynatıcı | — |
 | 11 | Fretboard ve teori | — |
 | 12 | Kulak eğitimi | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 112 / 112 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 64 / 64 |
+| Vitest (birim) | ✅ 130 / 130 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 70 / 70 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -173,6 +173,16 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
   vurgulanır; sayı sonunda yine elle düzeltilebilir.
 - Şarkı modundaki "doğru akor" denetimi Aşama 9'da, şarkı moduyla birlikte bağlanacak (`isChordPlayed` hazır).
 
+### Aşama 8 — Akıllı günlük plan
+- İlk açılışta ana sayfada karşılama kartı ve 6 soruluk seviye testi (atlanabilir, sonradan yeniden yapılabilir).
+- Ana sayfada "Bugünün planı": 15 / 30 / 45 dakika; her maddenin süresi, neden seçildiği ve "Başla" düğmesi.
+  "Başla", ilgili aracı planın ayarlarıyla (akor çifti, tempo, dizi, ton) açar.
+- Kurallar (sunucusuz, saf fonksiyon): hedefin altındaki en zayıf akor çifti → sıradaki yeni çift → en uzun
+  süredir çalışılmayan; ritimde son üç ölçümün isabetine göre yavaşlat / pekiştir / zorlaştır ve erken–geç
+  eğilimi; bu hafta hiç çalışılmayan konuya ek dakika; hedefe (akor / solo) göre dakika kaydırma; eşlik dizisi
+  seviyeye göre ve günden güne değişir.
+- Maddeler elle işaretlenir; bugün kaydedilen geçiş ve ritim sonuçları maddeyi kendiliğinden tamamlar.
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -184,6 +194,8 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - **Yayınlanmış site duman testi hiç çalıştırılamadı** (site yok). Site açılınca:
   `SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke`.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
+- Seviye testi öz değerlendirmedir (çalarak ölçüm yok). Plan yalnızca Katman 1–2 araçlarını kullanır; şarkı, tab,
+  sap ve kulak eğitimi maddeleri o aşamalar bitince eklenecek.
 - Akor tanıma yalnızca sentez sesle doğrulandı (yukarıdaki nota bak). Tanınmayan türler: dim, aug, 6, 9, m7b5 ve
   bölü akorları (C/G); bunlar en yakın tanınan türe yorumlanır.
 - Akor tanımada da hoparlör sızıntısı sorunu var: eşlik çalarken mikrofon eşliğin akorunu da duyar.

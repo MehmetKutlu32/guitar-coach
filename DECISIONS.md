@@ -159,6 +159,26 @@
 - **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
   1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
 
+## Günlük plan
+
+- **Seviye testi bir öz değerlendirme anketi** (6 soru, ~1 dakika), çalarak ölçüm değil. İlk açılışta mikrofon
+  izni, akort ve kalibrasyon istemek kullanıcıyı uygulamaya girmeden yorar; gerçek ölçümler (geçiş hızı, ritim
+  isabeti) zaten ilk egzersizlerle birikir ve plan bunları kullanır.
+- **Test zorunlu değil**: karşılama kartı ana sayfadadır, modal değil; "Şimdilik geç" yeni başlayan profiliyle
+  devam eder. Araçlar testten bağımsız kullanılabilir.
+- **Plan saf bir fonksiyondur** (`generatePlan`): profil + süre + gün + geçmiş → maddeler. Rastgelelik yok;
+  çeşitlilik gün sırasından gelir. Bu sayede her kural birim testiyle sınanır ve aynı gün plan değişmez.
+- **Her maddenin nedeni yazılır** ("En zayıf geçişin: dakikada 12, hedef 30"). Plan bir kara kutu gibi
+  görünmesin; kullanıcı neden o çifti çalıştığını bilsin.
+- **Akor çifti önceliği**: hedefin altındaki en zayıf çift (en zayıf iki çift arasında günaşırı dönüşümlü) → hiç
+  çalışılmamış sıradaki çift → diğer zayıflar → en eski çalışılan. Hedef hız seviyeye göre dakikada 30 / 45 / 60.
+- **Ritim kuralı son üç ölçümün ortalamasına bakar**: <60 yavaşlat (−10 BPM), 60–85 aynı tempoda kal (belirgin
+  erken/geç eğilimi varsa onu söyle), ≥85 önce nota değerini sıklaştır, sonra +5 BPM.
+- **Dakikaların toplamı her zaman seçilen süreye eşittir** (test edilir); hedef ve ihmal edilen konu dakikaları
+  bloklar arasında kaydırır, toplamı değiştirmez.
+- **"Tamamlandı" iki kaynaktan**: elle işaret (güne bağlı saklanır) ve bugün kaydedilmiş sonuçlar. Akort ve eşlik
+  için güvenilir bir otomatik ölçüt yok; onlar elle işaretlenir.
+
 ## Pratik günlüğü
 
 - **Süre, açık olan ekrana göre kendiliğinden ayrılır.** Kullanıcı her egzersiz için ayrı sayaç başlatmak zorunda
