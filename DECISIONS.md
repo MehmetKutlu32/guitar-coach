@@ -159,6 +159,29 @@
 - **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
   1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
 
+## Kulak eğitimi
+
+- **Seviye ilerlemesi ayrı saklanmaz, sonuç kayıtlarından türetilir** (`unlockedLevel`): seviye N, 1…N−1'in her
+  birinde geçer bir tur varsa açıktır. Tek doğruluk kaynağı `results` deposu olduğu için dışa/içe aktarmada
+  tutarsızlık olamaz.
+- **Geçme ölçütü: 10 soruluk tam turda %80.** Yarıda bırakılan tur kaydedilmez ve seviye açmaz ("ilk 4 soruyu
+  bilip çık" ile ilerlenmesin). %80, iki seçenekli ilk akor seviyesinde şansla geçmeyi zorlaştırır (10'da 8+
+  tutturma olasılığı ~%5).
+- **Seviyeler birikimlidir** (her seviye öncekinin türlerini içerir) ve önce birbirinden çok farklı duyulanlar
+  gelir (B3 / T5 / oktav; majör / minör). Çalınış biçimi de seviyeyle zorlaşır: çıkıcı → inici → birlikte.
+- **Tur soruları torbadan çekilir, bağımsız rastgele değil**: her tür yaklaşık eşit sayıda sorulur. Bağımsız
+  çekimde 10 soruda bir türün hiç gelmemesi sık olur ve "tür başına doğruluk" anlamsızlaşır.
+- **Kök her soruda değişir** (art arda aynı kök gelmez): mutlak perdeyi ezberleyip aralığı tanımış gibi
+  görünmek engellenir. Akor kökleri A2–A3 arasında, dar dizilimde ve kök konumunda; çevrimler bilinçli olarak
+  yok (başlangıç düzeyi için tür tınısını öğrenmek öncelikli).
+- **Doğruda kendiliğinden ilerleme, yanlışta bekleme.** Yanlış yanıt öğrenme anıdır: doğru ses ile seçilen
+  yanıtın sesi aynı kökten art arda dinlenebilsin diye ilerleme kullanıcıya bırakıldı. "Sonraki" düğmesi
+  seçeneklerin üstünde durur, 12 seçenekli seviyede de kaydırmadan görünür.
+- **Her çalma ayrı bir kazanç düğümünden geçer ve yeni çalmada önceki kısılır**: önceki sorunun çınlayan kuyruğu
+  yeni sorunun aralığına karışıp yanlış duyulmasın.
+- **Türkçe kısa aralık adları K/B/T** (K3 = küçük üçlü, T5 = tam beşli), İngilizcede m/M/P. Akor kısa adları iki
+  dilde de simge (maj, m, 7, maj7…).
+
 ## Sap ve teori
 
 - **Sap yatay ve 12 perdelik pencerelerle gösterilir** (0–12, 6–17, 13–24), kaydırılan 24 perdelik tek şerit

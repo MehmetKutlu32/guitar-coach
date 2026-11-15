@@ -3,6 +3,7 @@ import type { Key } from '../i18n';
 import type { IconName } from '../ui/Icon';
 import { BackingScreen } from './backing/Backing';
 import { ChordsScreen } from './chords/Chords';
+import { EarScreen } from './ear/Ear';
 import { Home } from './home/Home';
 import { LogScreen } from './log/Log';
 import { MetronomeScreen } from './metronome/Metronome';
@@ -105,6 +106,15 @@ export const FEATURES: Feature[] = [
     component: TheoryScreen,
     tool: true,
     activity: 'theory',
+  },
+  {
+    id: 'ear',
+    title: 'nav.ear',
+    desc: 'home.ear.desc',
+    icon: 'ear',
+    component: EarScreen,
+    tool: true,
+    activity: 'ear',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

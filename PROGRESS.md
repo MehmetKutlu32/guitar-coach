@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **11 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 12 — Kulak eğitimi**
+Son güncelleme: 2026-11-15 · Biten aşama: **12 / 16** (Katman 1, 2 ve 3 tamam) · Sıradaki: **Aşama 13 — Kayıt ve karşılaştırma**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -19,8 +19,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 9 | Şarkı modu | ✅ bitti |
 | 10 | Tab editörü ve oynatıcı | ✅ bitti |
 | 11 | Fretboard ve teori | ✅ bitti |
-| 12 | Kulak eğitimi | ⏳ sırada |
-| 13 | Kayıt ve karşılaştırma | — |
+| 12 | Kulak eğitimi | ✅ bitti |
+| 13 | Kayıt ve karşılaştırma | ⏳ sırada |
 | 14 | Kendi ses dosyasıyla çalışma | — |
 | 15 | Oyunlaştırma | — |
 | 16 | Canlı efektler | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 172 / 172 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 96 / 96 |
+| Vitest (birim) | ✅ 184 / 184 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 104 / 104 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -216,6 +216,20 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
   gösterilir), tur özeti ve kaçırılan notalar; ayar başına en iyi / son / tur sayısı / en hızlı (IndexedDB `results`).
 - Günlükte ayrı egzersiz türü: "Sap ve teori".
 
+### Aşama 12 — Kulak eğitimi
+- "Kulak eğitimi" ekranı, iki tür: aralık tanıma ve akor türü tanıma. Sesler sentez gitar (Karplus-Strong).
+- Seviye sistemi (tür başına 6 seviye): aralıklarda B3/T5/T8'den 12 aralığın tamamına, çıkıcı → inici → birlikte
+  çalınışa; akorlarda maj/min'den 11 türe (7, maj7, m7, sus2, sus4, dim, aug, m7b5, dim7). Bir seviyede tam turda
+  (10 soru) en az 8 doğru, sonraki seviyeyi açar. İlerleme kayıtlı sonuçlardan türetilir (ayrı durum yok), bu
+  yüzden yedekten içe aktarılan veriyle de doğru çalışır.
+- Tur: soru kendiliğinden çalınır, "Tekrar dinle"; akorlarda notaları "tek tek" dinleme ipucu. Doğruda kendiliğinden
+  ilerler; yanlışta doğru yanıt yeşil, seçilen kırmızı işaretlenir, "Seçtiğini dinle" ile iki ses aynı kökten
+  karşılaştırılır, "Sonraki" ile ilerlenir. Tur soruları dengeli dağıtılır, art arda aynı kökten soru gelmez.
+- Seviye tanıtımı: o seviyede sorulan türler; dokununca örneği çalınır.
+- Skor takibi: seviye başına en iyi / son / ortalama / tur sayısı ve tur puanları grafiği; tüm seviyelerden tür
+  başına doğruluk çubukları (en zayıf başta). Sonuçlar IndexedDB `results` deposunda (`type: 'ear'`).
+- Günlükte ayrı egzersiz türü: "Kulak eğitimi". Türkçe (K3, T5…) ve İngilizce (m3, P5…) aralık adları.
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -229,7 +243,11 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - **Aşama 9 ve sonrası GitHub'a gönderilmedi** (kullanıcı isteği, 2026-11-15: "push atma"). Commit'ler yerelde;
   `git status -sb` kaç commit ileride olduğunu gösterir.
-- **Aşama 11 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- **Aşama 11 ve 12 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- Kulak eğitimi: çalınan seslerin doğruluğu yalnızca saf fonksiyon düzeyinde sınandı (hangi notalar, ne zaman);
+  uçtan uca testler yalnızca "ses çıktı" diye bakıyor, perdeyi ölçmüyor. Akorlar hep kök konumunda ve dar
+  dizilimde (çevrim, açık dizilim yok); melodi/ritim dikte, gam tanıma ve mikrofonla (çalarak) yanıt yok.
+  Yarıda bırakılan tur kaydedilmez. Günlük plan henüz kulak eğitimi önermiyor.
 - Sap ve teori: yalnızca standart akort (alternatif akortlarda sap gösterilmez); CAGED yalnızca majör akor
   biçimleri (minör biçimler yok); oyun mikrofonla çalarak yanıtlanamıyor (yalnızca düğmeyle), zaman sınırı yok;
   günlük plan henüz gam/oyun önermiyor. Mobilde sap noktalarının dokunma alanı ~24×22 px (12 perde 390 px'e
@@ -268,7 +286,12 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Sahte saatle (`page.clock`) testte: saat durdurulmuşsa Preact `useEffect`'leri de bekler; ölçüm bitince
   `page.clock.resume()` çağır. Sayfa geçişinden sonra `runFor`'dan önce başlığın değiştiğini bekle.
 - Sap hesapları (gam/arpej konumları, CAGED, oyun soruları) saf fonksiyonlar: `src/music/fretboard.ts`; sap
-  çizimi `src/ui/Fretboard.tsx` (başka ekranlarda da kullanılabilir: `dots` + `start`). Kulak eğitimi skorları için
-  oyunun `results` deposundaki `type` alanlı kayıt düzeni örnek alınabilir.
+  çizimi `src/ui/Fretboard.tsx` (başka ekranlarda da kullanılabilir: `dots` + `start`).
+- Kulak eğitimi mantığı (seviyeler, tur üretimi, kilit açma, tür başına doğruluk): `src/music/ear.ts`. Yeni seviye
+  eklemek için `INTERVAL_LEVELS` / `CHORD_LEVEL_ITEMS`'e satır eklemek yeter; yeni akor türü için ayrıca
+  `ear.chord.<tür>` metni gerekir. Oyunlaştırma (Aşama 15) için hazır veri: `results` deposunda `type: 'ear'`
+  ve `type: 'fretgame'` kayıtları.
+- Uçtan uca testte veritabanına hazır veri koymak için bkz. `ear.spec.ts` ("son seviye" testi): sayfada
+  `indexedDB.open('gitar-app')` ile doğrudan yazıp sayfayı yenile.
 - Akor verisi ve teori: `src/music/chords.ts`, `src/music/theory.ts`. Grafikler: `src/ui/charts.tsx`.
 - Windows'ta Git Bash heredoc'ları tek tırnak sayısı tek olunca bozuluyor; dosyaları doğrudan yaz.
