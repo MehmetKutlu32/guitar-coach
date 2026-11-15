@@ -6,6 +6,7 @@ import { backing, BUS_GAIN, playBandEvent } from './features/backing/player';
 import { BAR_TICKS, eventsAt, TICKS_PER_BEAT, type StyleId } from './features/backing/styles';
 import type { RhythmResult } from './features/rhythm/analysis';
 import { rhythmOutcome } from './features/rhythm/session';
+import { tabPlayer } from './features/tabs/player';
 import { resolveTemplate, TEMPLATES } from './music/progressions';
 
 /**
@@ -21,6 +22,7 @@ export interface GitarDebug {
   /** Bekleyen kalıcı durum yazmaları bitince çözülür. */
   flush(): Promise<void>;
   backing: typeof backing;
+  tabPlayer: typeof tabPlayer;
   /** Ana çıkışı verilen düğüme bağlar (testte hoparlör→mikrofon geri dönüşü). */
   tapOutput(node: AudioNode): void;
   /** Son ritim ölçümünün kaydı (yoksa null). */
@@ -117,6 +119,7 @@ export function installDebugHooks(): void {
   window.__gitar = {
     metronome,
     backing,
+    tabPlayer,
     renderClicks,
     renderBacking,
     outputRms,

@@ -159,6 +159,23 @@
 - **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
   1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
 
+## Tab editörü ve oynatıcı
+
+- **Izgara tabanlı model**: 4/4, ölçü başına 16 adım, adım başına 6 tel değeri. Serbest süreli nota modeli yerine
+  ızgara seçildi: telefonda tek elle yazmak, döngü almak ve zamanlamak çok daha basit. Bedeli: üçlemeler ve
+  on altılıktan kısa notalar yazılamaz.
+- **Nota süresi yazılmaz, çıkarılır**: bir nota, aynı teldeki sonraki notaya (ya da çalınan bölümün sonuna, en çok
+  iki ölçü) kadar çınlar. Gerçek gitardaki "tel yeni notaya kadar titrer" davranışına uyar ve süre girme derdini
+  ortadan kaldırır.
+- **Yazma tuş takımıyla, hücreye dokunarak değil.** Mobilde bir tab hücresi ~20 px genişliğinde; 44 px altındaki
+  hedefe dokunarak perde girmek kullanışsız. İmleç oklarla (ya da hücreye dokunarak) taşınır, perde büyük
+  tuşlardan yazılır. İki haneli perdeler için "+10" tuşu son yazılan hücreye 10 ekler.
+- **İmleç ve tab, çizimi beklemeyen referanslarda da tutulur.** İlk sürümde hızlı art arda tuş basışlarında
+  imleç geride kalıyor ve nota yanlış hücreye yazılıyordu (uçtan uca test yakaladı).
+- **Hazır içerik yalnızca genel teknik egzersizler** (kromatik, pentatonik kalıp, boogie eşliği, power akor
+  ritmi, tel atlama): bilinen parçalardan riff yok.
+- **Hazır egzersizde yapılan tempo/nota değişiklikleri kaydedilmez**; kalıcı olması için egzersiz kopyalanır.
+
 ## Şarkı modu
 
 - **Hazır içerik yalnızca kendi yazdığımız çalışma şarkıları.** CLAUDE.md telifsiz (kamu malı) örneklere izin

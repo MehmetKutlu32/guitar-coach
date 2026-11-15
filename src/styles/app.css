@@ -2076,3 +2076,111 @@ a.btn {
     bottom: 16px;
   }
 }
+
+/* ---------- Tab ---------- */
+
+.tabs-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.tab-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px 10px;
+}
+
+.tab-bar {
+  position: relative;
+  padding-top: 14px;
+  scroll-margin: 140px;
+}
+
+.tab-bar.out {
+  opacity: 0.4;
+}
+
+.tab-bar-num {
+  position: absolute;
+  top: 0;
+  left: 16px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.tab-rows {
+  border-right: 2px solid #596072;
+}
+
+.tab-row {
+  display: grid;
+  grid-template-columns: 14px repeat(16, minmax(0, 1fr));
+  align-items: center;
+  height: 24px;
+  /* Tel çizgisi. */
+  background: linear-gradient(#596072, #596072) 14px 50% / calc(100% - 14px) 1px no-repeat;
+}
+
+.tab-string {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.tab-cell {
+  display: grid;
+  place-items: center;
+  height: 22px;
+  min-width: 0;
+  font: 700 13px/1 ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  border-radius: 5px;
+}
+
+.tab-cell.beat {
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.07);
+}
+
+.tab-cell.note {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.tab-cell.now {
+  background: rgba(245, 165, 36, 0.28);
+}
+
+.tab-cell.now.note {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tab-cell.cursor {
+  outline: 2px solid var(--info);
+  outline-offset: -1px;
+  background: rgba(108, 182, 255, 0.18);
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.key {
+  min-width: 0;
+  padding: 0;
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 900px) {
+  .tabs-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}

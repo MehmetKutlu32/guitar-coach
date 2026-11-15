@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **9 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 10 — Tab editörü ve oynatıcı**
+Son güncelleme: 2026-11-15 · Biten aşama: **10 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 11 — Fretboard ve teori**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -17,8 +17,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 7 | Çalarken geri bildirim — akor | ✅ bitti |
 | 8 | Akıllı günlük plan | ✅ bitti |
 | 9 | Şarkı modu | ✅ bitti |
-| 10 | Tab editörü ve oynatıcı | ⏳ sırada |
-| 11 | Fretboard ve teori | — |
+| 10 | Tab editörü ve oynatıcı | ✅ bitti |
+| 11 | Fretboard ve teori | ⏳ sırada |
 | 12 | Kulak eğitimi | — |
 | 13 | Kayıt ve karşılaştırma | — |
 | 14 | Kendi ses dosyasıyla çalışma | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 143 / 143 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 80 / 80 |
+| Vitest (birim) | ✅ 156 / 156 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 88 / 88 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -193,6 +193,15 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Şarkı ekleme / düzenleme (canlı önizleme, tanınmayan akor uyarısı) / silme; hazır şarkıyı kopyalayıp düzenleme.
 - Üç hazır çalışma şarkısı; sözleri ve akor düzenleri bu uygulama için yazıldı.
 
+### Aşama 10 — Tab editörü ve oynatıcı
+- Tab ızgarası: 4/4, ölçü başına 16 adım; ölçüler ekran genişliğine göre alt alta dizilir.
+- Yazma: büyük tuş takımı (0–9, +10, x, sil, oklar), "yazınca ilerle", hücreye dokunarak imleç taşıma, masaüstünde
+  klavye (rakamlar, oklar, x, Sil); ölçü ekleme/silme; ad ve tempo.
+- Oynatıcı: sentez gitar sesi (nota, aynı teldeki sonraki notaya kadar sürer; susturulmuş nota), bir ölçü sayma,
+  metronom tıkı, çalınan adımın vurgulanması, tab bitince durma.
+- Yavaşlatma (%50 / %75 / %100, çalarken de değişir) ve bölüm döngüsü (başlangıç–bitiş ölçüsü).
+- Riff kütüphanesi: kendi tabların (kaydet / düzenle / sil) + 5 hazır teknik egzersiz (kopyalanıp düzenlenebilir).
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -206,6 +215,8 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - **Aşama 9 ve sonrası GitHub'a gönderilmedi** (kullanıcı isteği, 2026-11-15: "push atma"). Commit'ler yerelde;
   `git status -sb` kaç commit ileride olduğunu gösterir.
+- Tab: yalnızca 4/4 ve on altılık ızgara (üçleme yok); çekiç, kaydırma, bend gibi teknik işaretleri yok; düz
+  metin tab içe aktarma yok (dışa yazma fonksiyonu `toAscii` var ama arayüze bağlı değil).
 - Şarkı modunda her akor aynı sürer ("akor başına vuruş"); ChordPro süre taşımadığı için akorların gerçek ritmi
   girilemez. Günlük plan henüz şarkı önermiyor.
 - Seviye testi öz değerlendirmedir (çalarak ölçüm yok). Plan yalnızca Katman 1–2 araçlarını kullanır; şarkı, tab,

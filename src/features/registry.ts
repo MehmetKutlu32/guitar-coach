@@ -9,6 +9,7 @@ import { MetronomeScreen } from './metronome/Metronome';
 import { RhythmScreen } from './rhythm/Rhythm';
 import { Settings } from './settings/Settings';
 import { SongsScreen } from './songs/Songs';
+import { TabsScreen } from './tabs/Tabs';
 import { Tuner } from './tuner/Tuner';
 
 export interface Feature {
@@ -85,6 +86,15 @@ export const FEATURES: Feature[] = [
     component: SongsScreen,
     tool: true,
     activity: 'song',
+  },
+  {
+    id: 'tabs',
+    title: 'nav.tabs',
+    desc: 'home.tabs.desc',
+    icon: 'tab',
+    component: TabsScreen,
+    tool: true,
+    activity: 'tab',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

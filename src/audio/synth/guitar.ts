@@ -1,5 +1,5 @@
 import { midiToFreq } from '../../dsp/notes';
-import { audioCtx, playBuffer, type PlayOptions } from '../engine';
+import { audioCtx, masterOut, playBuffer, type PlayOptions } from '../engine';
 import { pluck } from './karplus';
 
 const cache = new Map<string, AudioBuffer>();
@@ -34,6 +34,39 @@ export function pluckBuffer(freq: number, sound: PluckSound = {}): AudioBuffer {
 
 export function playPluck(freq: number, opts: PlayOptions & PluckSound = {}): AudioBufferSourceNode {
   return playBuffer(pluckBuffer(freq, opts), opts);
+}
+
+export interface NoteOptions {
+  when?: number;
+  /** Notanın süresi (saniye); sonunda kısa bir sönümle kesilir. */
+  seconds: number;
+  gain?: number;
+  /** Susturulmuş (ölü) nota. */
+  muted?: boolean;
+  destination?: AudioNode;
+}
+
+/**
+ * Belirli süreli tek bir nota çalar (tab oynatıcı için). Tel sesi her perde için bir kez üretilir
+ * ve önbellekten kullanılır; süre, kazanç zarfıyla kesilir.
+ */
+export function playNote(freq: number, opts: NoteOptions): void {
+  const ctx = audioCtx();
+  const when = Math.max(opts.when ?? 0, ctx.currentTime);
+  const buffer = opts.muted
+    ? pluckBuffer(freq, { duration: 0.2, decay: 0.07, brightness: 0.9 })
+    : pluckBuffer(freq, { duration: 3 });
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  const gain = ctx.createGain();
+  const level = opts.gain ?? 0.6;
+  const end = when + Math.min(opts.seconds, buffer.duration - 0.05);
+  gain.gain.setValueAtTime(level, when);
+  gain.gain.setValueAtTime(level, end);
+  gain.gain.linearRampToValueAtTime(0, end + 0.04);
+  src.connect(gain).connect(opts.destination ?? masterOut());
+  src.start(when);
+  src.stop(end + 0.06);
 }
 
 export type StrumDirection = 'D' | 'U' | 'X';
