@@ -1,33 +1,115 @@
 # Gitar Çalışma
 
-Elektro gitar çalışanlar için telefonda ve bilgisayarda çalışan, **çevrimdışı kullanılabilen** bir çalışma uygulaması
-(PWA). Sunucu yok: tüm veriler cihazında kalır, tüm sesler tarayıcıda üretilir.
+Elektro gitar öğrenirken yanında duran bir çalışma arkadaşı. Seni dinler, sana eşlik eder, ne çalışacağını
+planlar. Telefonda da bilgisayarda da çalışır, **internet olmadan da açılır**. Hesap açman gerekmez: verilerin
+yalnızca senin cihazında kalır.
 
-Ayrıntılı durum, ölçülen doğruluk oranları ve bilinen eksikler için [PROGRESS.md](PROGRESS.md), tasarım kararları
-için [DECISIONS.md](DECISIONS.md).
+🎸 **Uygulamayı aç:** <https://mehmetkutlu32.github.io/guitar-coach/>
 
-## Özellikler
+## Neler yapabilirsin?
 
-| Ekran | Ne yapar |
-|-------|----------|
-| Ana sayfa | Seviye testi, 15 / 30 / 45 dakikalık günlük plan |
-| Akort | YIN perde algılama, nota + cent göstergesi, standart ve alternatif akortlar (Drop D, yarım ton pes…) |
-| Metronom | Kaymayan tıklar, vurgu, ölçü tipleri, tap tempo, tempo antrenörü, vuruş (strumming) kalıpları |
-| Akorlar | Açık, bare ve power akor diyagramları, geçiş egzersizi, mikrofonla akor tanıma ve otomatik sayım |
-| Eşlik | Sentez davul + bas + akorla backing track; hazır diziler ya da kendi dizin, tona uygun gam önerisi |
-| Ritim | Çalarken vuruş algılama, erken/geç sapma (ms), tutarlılık puanı, oturum özeti |
-| Şarkılar | ChordPro düzenleyici, akorlar sözlerin üstünde, transpoze, kapo, eşlikle otomatik kaydırma |
-| Tab | Tab yazma, sentez gitarla çalma, yavaşlatma, bölüm döngüsü, riff kütüphanesi |
-| Sap ve teori | Gamlar, modlar, arpejler, CAGED, sapta nota ezberleme oyunu |
-| Kulak eğitimi | Aralık ve akor türü tanıma, seviyeler, skor takibi |
-| Kayıt | Çalışmanı kaydetme, dalga formu, iki kaydı yan yana dinleme (A/B) |
-| Ses dosyası | Kendi dosyanı tonu bozmadan yavaşlatma, ton değiştirme, A–B döngüsü |
-| Günlük | Oturum zamanlayıcı, egzersiz bazında süre, günlük seri, haftalık/aylık grafikler |
-| Ayarlar | Dil (TR/EN), giriş cihazı, seviye göstergesi, gecikme kalibrasyonu, JSON yedekleme |
+**Her gün**
+- **Bugünün planı:** 15, 30 ya da 45 dakikan mı var? Uygulama, geçmiş sonuçlarına bakarak o günkü çalışmayı
+  hazırlar: zorlandığın akor geçişleri, ritim çalışması, uzun süredir dokunmadığın konular. "Başla"ya bas, ilgili
+  araç doğru ayarlarla açılsın.
+- **Günlük:** çalışma süren kendiliğinden tutulur. Günlük serini, haftalık ve aylık grafiklerini görürsün.
 
-Hazır içerik (egzersizler, çalışma şarkıları, riff'ler) bu uygulama için yazıldı; telifli söz, tab ya da nota yoktur.
+**Temel araçlar**
+- **Akort:** teli çal, notayı ve kaç cent saptığını gör. Standart akordun yanında Drop D, Drop C, yarım ve tam ton
+  pes, DADGAD, açık G / D / E ve kromatik mod var.
+- **Metronom:** tempo, vurgu, ölçü tipi, tap tempo. Tempo antrenörü her birkaç ölçüde hızı kendiliğinden artırır.
+  Aşağı/yukarı vuruş (strumming) kalıplarını metronomla birlikte takip edebilir, kendi kalıbını yazabilirsin.
+- **Akorlar:** açık, bare ve power akor diyagramları. Diyagrama dokununca akor çalınır. İki akor arasında bir
+  dakikalık geçiş egzersizi yap, ilerlemeni grafikte izle.
 
-## Kurulum
+**Seni dinleyen araçlar** (mikrofon ya da amfi bağlantısı gerekir)
+- **Akor tanıma:** bastığın akoru duyar, doğru basıp basmadığını söyler. Geçiş egzersizinde geçişleri senin yerine
+  sayar.
+- **Ritim:** metronomla ya da eşlikle çalarken her vuruşunun kaç milisaniye erken/geç olduğunu gösterir. Sonunda
+  isabet ve tutarlılık puanı verir.
+
+**Eşlik ve şarkılar**
+- **Eşlik (backing track):** davul, bas ve akorlardan oluşan bir grup sana eşlik eder. 12 ölçülük blues, I–V–vi–IV
+  gibi hazır diziler ya da kendi yazdığın dizi; tempo, ton ve tarz (rock, blues, pop, funk) senin elinde. Ekranda o
+  anki ve sıradaki akor, üstünde doğaçlama yapabileceğin gamlar görünür.
+- **Şarkılar:** akorlar sözlerin üstünde. Eşlikle birlikte çalarken sayfa kendiliğinden kayar. Transpoze ve kapo
+  desteği var. Kendi şarkılarını ChordPro biçiminde yazabilirsin.
+- **Tab:** tab yaz, dinle, yavaşlat, zor bölümü döngüye al. Kendi riff kütüphaneni oluştur.
+- **Ses dosyası:** telefonundaki bir şarkıyı yükle; tonunu bozmadan yavaşlat, tonunu değiştir, zor bölümü
+  döngüye al.
+
+**Teori ve kulak**
+- **Sap ve teori:** gamlar, modlar, arpejler ve CAGED biçimleri sapta. Sapta nota ezberleme oyunu.
+- **Kulak eğitimi:** aralıkları ve akor türlerini kulaktan tanı. Seviye seviye ilerlersin.
+
+**Kendini dinle**
+- **Kayıt:** çalışmanı kaydet, haftalar sonra eski kaydınla yan yana dinle, ne kadar geliştiğini duy.
+
+Uygulama Türkçe ve İngilizce kullanılabilir (*Ayarlar → Dil*). Uygulamadaki hazır egzersizler, çalışma şarkıları
+ve riff'ler bu uygulama için yazıldı.
+
+## Telefona yükleme
+
+Uygulamayı ana ekrana eklersen normal bir uygulama gibi tam ekran açılır ve internet olmadan da çalışır.
+
+- **Android (Chrome):** siteyi aç → sağ üstteki menü → *Uygulamayı yükle* (ya da *Ana ekrana ekle*).
+- **iPhone / iPad (Safari):** siteyi aç → Paylaş düğmesi → *Ana Ekrana Ekle*.
+- **Bilgisayar (Chrome / Edge):** adres çubuğunun sağındaki yükleme simgesine tıkla.
+
+İlk açılıştan sonra *Ayarlar → Hakkında* altında **"Çevrimdışı kullanıma hazır"** yazısını görürsün. Artık
+internet olmadan da açılır.
+
+## Gitarını bağlama
+
+Uygulama telefonun ya da bilgisayarın mikrofonuyla da çalışır. Ama gitarı doğrudan bağlarsan çok daha temiz bir
+sinyal alır, akort, akor tanıma ve ritim ölçümü daha isabetli olur.
+
+1. **USB çıkışlı bir amfin** ya da **ses kartın** (audio interface) varsa: gitarı amfiye/ses kartına, onu da USB
+   kabloyla bilgisayara bağla. Telefonda bunun için bir OTG ya da USB-C adaptörü gerekir.
+2. *Ayarlar → Ses girişi → Giriş cihazı* listesinden amfini ya da ses kartını seç.
+   Liste boşsa önce *Girişi test et*'e bas ve mikrofon iznini ver; cihaz adları ondan sonra görünür.
+3. *Girişi test et* ile seviye çubuğuna bak: çaldığında hareket etmeli, en sert vuruşlarda kırmızıya
+   dayanmamalı. Dayanıyorsa amfinin ya da ses kartının giriş kazancını (gain) biraz kıs.
+
+Gitarın ses kartının 2. girişine takılıysa da sorun yok, uygulama iki kanalı da dinler.
+
+### Gecikme kalibrasyonu (ritim ölçümü için)
+
+Ses hoparlörden çıkıp uygulamaya geri gelene kadar birkaç milisaniye geçer. Ritim ölçümünün doğru olması için bu
+süreyi bir kez ölç: *Ayarlar → Gecikme kalibrasyonu*.
+
+- **Otomatik ölç:** hoparlör açıkken kullan. Uygulama sekiz tık çalar ve mikrofondan dinler; o sırada sessiz ol.
+- **Çalarak ölç:** kulaklık takılıyken ya da gitar doğrudan bağlıyken kullan. Dört hazırlık tıkından sonra gelen
+  sekiz tıkın her birinde bir kez vur.
+
+> **İpucu:** Ritim ve akor tanıma sırasında kulaklık kullan. Hoparlörden çıkan metronom ya da eşlik sesi
+> mikrofona girerse uygulama onu da senin çaldığın sanabilir.
+
+## Verilerin
+
+- Tüm çalışma geçmişin, şarkıların, tab'ların ve kayıtların **yalnızca bu cihazda** saklanır. Hiçbir sunucuya
+  gönderilmez.
+- Yedek almak ya da başka bir cihaza taşımak için: *Ayarlar → Veriler → Dışa aktar (JSON)*. Diğer cihazda
+  *İçe aktar* ile dosyayı seç. İçe aktarma, o cihazdaki mevcut verilerin yerine geçer.
+- Tarayıcının site verilerini silersen uygulamadaki verilerin de silinir. Arada bir yedek almanı öneririz.
+
+## Sık sorulanlar
+
+**Mikrofon çalışmıyor.**
+Tarayıcı mikrofon izni istediğinde *İzin ver*'e bas. Daha önce reddettiysen adres çubuğundaki kilit simgesinden
+mikrofon iznini aç ve sayfayı yenile.
+
+**Ses gelmiyor.**
+Telefonun sessiz modda olmadığından ve medya sesinin açık olduğundan emin ol. iPhone'da yan taraftaki sessiz
+anahtarı da sesi kesebilir.
+
+**Akor tanıma bazen yanılıyor.**
+Gitarının akortlu olduğundan emin ol, akoru net bas ve tellerin çınlamasına izin ver. Doğrudan bağlantı ve
+kulaklık, ortam gürültüsünü ve hoparlör sesini dışarıda tuttuğu için en iyi sonucu verir.
+
+---
+
+## Geliştiriciler için
 
 Node.js 22 ya da üstü gerekir.
 
@@ -36,105 +118,25 @@ npm install
 npx playwright install chromium   # yalnızca uçtan uca testler için
 ```
 
-## Geliştirme
-
 ```bash
 npm run dev        # geliştirme sunucusu: http://localhost:5173/guitar-coach/
 npm run build      # tür denetimi + üretim derlemesi (dist/)
-npm run preview    # derlenmiş sürümü sun: http://localhost:4173/guitar-coach/
-```
-
-Mikrofon yalnızca güvenli bağlamda (`https://` ya da `localhost`) çalışır. Telefonda denemek için yayınlanmış siteyi
-kullan ya da bilgisayardaki sunucuyu HTTPS tüneliyle aç.
-
-## Testler
-
-```bash
-npm test           # birim testleri (Vitest): DSP, veri katmanı, mantık
-npm run e2e        # uçtan uca (Playwright): 390×844 mobil + 1440×900 masaüstü
+npm run preview    # derlenmiş sürüm: http://localhost:4173/guitar-coach/
+npm test           # birim testleri (Vitest)
+npm run e2e        # uçtan uca testler (Playwright): 390×844 mobil + 1440×900 masaüstü
 npm run check      # build + birim + uçtan uca
 ```
 
-- Ses analizi testleri gerçek mikrofon kullanmaz: sinyaller kodla üretilir (sinüs, Karplus-Strong, gürültü).
-- Uçtan uca testler Chromium'un sahte mikrofonuna üretilmiş bir WAV dosyası verir.
-- Her test çalışmasında ekran görüntüleri `screenshots/mobile` ve `screenshots/desktop` altına yazılır.
+Mikrofon yalnızca güvenli bağlamda (`https://` ya da `localhost`) çalışır. Telefonda denemek için yayınlanmış
+siteyi kullan ya da yerel sunucuyu bir HTTPS tüneliyle aç.
 
-Yayınlanmış siteyi sınamak için (bash):
+**Yayınlama:** `main`'e her push'ta GitHub Actions testleri çalıştırır; geçerse siteyi GitHub Pages'e yayınlar.
+Pages'in çalışması için depo herkese açık olmalı (ya da plan özel depoda Pages'i desteklemeli) ve
+*Settings → Pages → Source* **GitHub Actions** seçilmiş olmalı. Yayınlanmış siteyi sınamak için:
 
 ```bash
 SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke
 ```
 
-Windows PowerShell'de:
-
-```powershell
-$env:SMOKE_URL = "https://mehmetkutlu32.github.io/guitar-coach/"; npm run smoke
-```
-
-## Telefona yükleme (PWA)
-
-1. Yayınlanmış siteyi telefonun tarayıcısında aç.
-2. **Android (Chrome):** menü → *Ana ekrana ekle* / *Uygulamayı yükle*.
-   **iPhone (Safari):** Paylaş düğmesi → *Ana Ekrana Ekle*.
-3. İlk açılıştan sonra uygulama internet olmadan da açılır. *Ayarlar → Hakkında* altında "Çevrimdışı kullanıma hazır"
-   yazısını görürsün.
-
-## Amfiyi ya da ses kartını bağlama
-
-Uygulama herhangi bir ses girişini dinleyebilir. Mikrofonla da çalışır, ama doğrudan bağlantı daha temiz sinyal verir.
-
-1. **USB çıkışlı amfi** ya da **ses kartı** (audio interface) kullan: gitarı amfiye/ses kartına, onu da USB ile
-   bilgisayara ya da (OTG/USB-C adaptörüyle) telefona bağla.
-2. Uygulamada *Ayarlar → Ses girişi → Giriş cihazı* listesinden cihazı seç. Cihaz adları mikrofon izni verildikten
-   sonra görünür; görünmüyorsa önce *Girişi test et*'e bas.
-3. *Girişi test et* ile seviye göstergesine bak: çalarken çubuk hareket etmeli, en sert vuruşlarda kırmızıya
-   dayanmamalı. Dayanıyorsa amfinin/ses kartının giriş kazancını kıs.
-4. Ses kartında gitar 2. girişe takılıysa da sorun yok; kanalların ortalaması dinlenir.
-
-Tarayıcının konuşma için yaptığı yankı engelleme, gürültü bastırma ve otomatik kazanç ayarı kapatılır; enstrüman sesi
-olduğu gibi analiz edilir.
-
-## GitHub Pages'te yayınlama
-
-`.github/workflows/deploy.yml`, `main` dalına her push'ta testleri çalıştırır; hepsi geçerse siteyi GitHub Pages'e
-yayınlar. Testler kalırsa yayınlamaz.
-
-Depo: <https://github.com/MehmetKutlu32/guitar-coach> · Site: <https://mehmetkutlu32.github.io/guitar-coach/>
-
-> **Şu anki durum:** site henüz yayında değil. Depo özel; GitHub'ın ücretsiz planında özel depodan Pages
-> yayınlanmaz. Yayınlamak için depoyu herkese açık yap (ya da Pages destekleyen bir plana geç), sonra aşağıdaki
-> ayarı yap.
-
-Pages'in çalışması için depo ayarlarında bir kez **Settings → Pages → Build and deployment → Source: GitHub Actions**
-seçilmiş olmalı. `gh` CLI ile aynı ayar:
-
-```bash
-gh api -X POST repos/MehmetKutlu32/guitar-coach/pages -f build_type=workflow
-```
-
-Depoyu başka bir adla çatallarsan ek ayar gerekmez: iş akışı Vite `base` yolunu repo adından üretir; yerelde aynı
-yolu kullanmak için `BASE_PATH=/yeni-ad/` ortam değişkenini ver.
-
-## Proje yapısı
-
-```
-src/
-  audio/        AudioContext, giriş, metronom ve saat, kayıt, AudioWorklet'ler
-                (analyzer: perde / vuruş / kroma · stretch: zaman esnetme), sentez (Karplus-Strong, davul, bas)
-  dsp/          saf DSP kodu: FFT, YIN, vuruş algılama, kroma, WSOLA zaman esnetme
-  music/        müzik teorisi: akorlar, gamlar, diziler, akor tanıma, ChordPro, tab, sap, kulak eğitimi
-  db/           IndexedDB katmanı, dışa/içe aktarma
-  features/     ekranlar (her biri bir klasör) ve saf mantıkları; kayıt: features/registry.ts
-  i18n/         Türkçe ve İngilizce metinler
-  ui/           ortak arayüz parçaları (sap, dalga formu, grafikler, ikonlar)
-  styles/       CSS (koyu tema)
-tests/unit/     Vitest
-tests/e2e/      Playwright
-tests/smoke/    yayınlanmış site için duman testi
-```
-
-## Katkı
-
-- Commit mesajları İngilizce yazılır.
-- Her commit öncesi `npm run check` (build + birim + uçtan uca) yeşil olmalı.
-- Yeni ekran eklemek ve test kancaları için [PROGRESS.md](PROGRESS.md) → "Devam edecek kişi için notlar".
+Proje yapısı, mimari kararlar, ölçülen doğruluk oranları ve bilinen eksikler:
+[PROGRESS.md](PROGRESS.md) ve [DECISIONS.md](DECISIONS.md).
