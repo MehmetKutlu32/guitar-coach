@@ -19,8 +19,17 @@ export const inputStatus = signal<InputStatus>('idle');
 export const inputLevel = signal(0);
 export const inputDevices = signal<MediaDeviceInfo[]>([]);
 
+export interface OnsetEvent {
+  /** Vuruşun girişe ulaştığı an (AudioContext saniyesi). */
+  time: number;
+  strength: number;
+}
+
 type Listener = (frame: AnalysisFrame) => void;
+type OnsetListener = (onset: OnsetEvent) => void;
 const listeners = new Set<Listener>();
+const onsetListeners = new Set<OnsetListener>();
+let analyzerConfig: { pitch: boolean; onset: boolean } = { pitch: true, onset: false };
 
 let stream: MediaStream | null = null;
 let source: AudioNode | null = null;
@@ -100,11 +109,16 @@ async function start(): Promise<void> {
     await moduleLoaded;
     source = await openSource(ctx);
     node = new AudioWorkletNode(ctx, 'gitar-analyzer', { numberOfInputs: 1, numberOfOutputs: 1 });
-    node.port.onmessage = (e: MessageEvent<AnalysisFrame>) => {
-      const frame = e.data;
-      inputLevel.value = levelToUnit(frame.peak);
-      for (const l of listeners) l(frame);
+    node.port.onmessage = (e: MessageEvent<(AnalysisFrame & { kind: 'frame' }) | (OnsetEvent & { kind: 'onset' })>) => {
+      const msg = e.data;
+      if (msg.kind === 'onset') {
+        for (const l of onsetListeners) l(msg);
+        return;
+      }
+      inputLevel.value = levelToUnit(msg.peak);
+      for (const l of listeners) l(msg);
     };
+    node.port.postMessage(analyzerConfig);
     // Bazı tarayıcılar yalnızca hedefe bağlı düğümleri işler: sessiz bir çıkışa bağla.
     sink = ctx.createGain();
     sink.gain.value = 0;
@@ -150,9 +164,15 @@ export function onAnalysis(listener: Listener): () => void {
   return () => listeners.delete(listener);
 }
 
-/** Analiz modlarını aç/kapat (worklet içinde). */
-export function configureAnalyzer(config: { pitch?: boolean }): void {
-  node?.port.postMessage(config);
+export function onOnset(listener: OnsetListener): () => void {
+  onsetListeners.add(listener);
+  return () => onsetListeners.delete(listener);
+}
+
+/** Analiz modlarını aç/kapat (worklet içinde). Giriş henüz açık değilse açılınca uygulanır. */
+export function configureAnalyzer(config: { pitch?: boolean; onset?: boolean }): void {
+  analyzerConfig = { ...analyzerConfig, ...config };
+  node?.port.postMessage(analyzerConfig);
 }
 
 /** Ayarlarda cihaz değişince, çalışan girişi yeni cihazla yeniden aç. */

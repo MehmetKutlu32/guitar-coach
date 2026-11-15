@@ -42,6 +42,11 @@ export interface MetronomeConfig {
   trainer?: TrainerConfig | null;
   /** 0..1 */
   volume?: number;
+  /**
+   * Bu ölçünün ilk vuruşu son tık olur; sonrası sessizdir ve `onStep` çağrılmaz.
+   * Belirli sayıda ölçü süren egzersizler için (bitiş, bir sonraki ölçünün "bir"inde).
+   */
+  endAtBar?: number;
 }
 
 export interface ScheduledLog {
@@ -145,6 +150,10 @@ export class Metronome {
     const cfg = this.cfg!;
     const ctx = audioCtx();
     const volume = cfg.volume ?? 1;
+    if (cfg.endAtBar !== undefined) {
+      const past = event.bar > cfg.endAtBar || (event.bar === cfg.endAtBar && (event.beat > 0 || event.sub > 0));
+      if (past) return;
+    }
     if (event.sub === 0) {
       const level = cfg.accents[event.beat] ?? 1;
       if (level > 0) scheduleClick(ctx, masterOut(), event.time, level >= 2 ? 'accent' : 'beat', volume);

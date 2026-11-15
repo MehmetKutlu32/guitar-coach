@@ -5,6 +5,7 @@ import { LANGS, t } from '../../i18n';
 import { settings } from '../../settings';
 import { Card, LevelMeter, Notice, Segmented, Stepper } from '../../ui/controls';
 import { Icon } from '../../ui/Icon';
+import { LatencyCard } from '../rhythm/LatencyCard';
 
 declare const __APP_VERSION__: string;
 
@@ -166,6 +167,8 @@ export function Settings() {
       </Card>
 
       <InputSection />
+
+      <LatencyCard />
 
       <Card title={t('settings.a4')}>
         <Stepper

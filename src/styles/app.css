@@ -1627,3 +1627,139 @@ input[type='date'].input {
     top: 16px;
   }
 }
+
+/* ---------- Ritim ---------- */
+
+.rhythm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.beat-dot.static {
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+
+.lane {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lane-track {
+  fill: var(--surface-2);
+  stroke: var(--border);
+}
+
+.lane-good {
+  fill: rgba(61, 220, 132, 0.2);
+}
+
+.lane-center {
+  stroke: var(--good);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.lane-dot.good,
+.dev-dot.good {
+  fill: var(--good);
+}
+
+.lane-dot.ok,
+.dev-dot.ok {
+  fill: var(--warn);
+}
+
+.lane-dot.off,
+.dev-dot.off {
+  fill: var(--bad);
+}
+
+.lane-dot.last {
+  stroke: var(--bg);
+  stroke-width: 3;
+}
+
+.lane-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.rhythm-last {
+  min-height: 40px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.rhythm-last.good {
+  color: var(--good);
+}
+
+.rhythm-last.warn {
+  color: var(--warn);
+}
+
+.scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 6px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}
+
+.score-value {
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.dev-band {
+  fill: rgba(61, 220, 132, 0.14);
+}
+
+.dev-zero {
+  stroke: var(--good);
+  stroke-width: 1.5;
+}
+
+.dev-miss {
+  fill: none;
+  stroke: var(--bad);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+a.list-row {
+  text-decoration: none;
+}
+
+.notice.info {
+  color: var(--text);
+}
+
+@media (min-width: 900px) {
+  .rhythm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}

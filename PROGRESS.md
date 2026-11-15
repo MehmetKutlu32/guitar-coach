@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-14 · Biten aşama: **5 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 6 — Çalarken geri bildirim (ritim)**
+Son güncelleme: 2026-11-15 · Biten aşama: **6 / 16** (Katman 1 tamam) · Sıradaki: **Aşama 7 — Çalarken geri bildirim (akor)**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -13,8 +13,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 3 | Akor kütüphanesi + geçiş egzersizi | ✅ bitti |
 | 4 | Pratik günlüğü | ✅ bitti |
 | 5 | Backing track üretici | ✅ bitti |
-| 6 | Çalarken geri bildirim — ritim | ⏳ sırada |
-| 7 | Çalarken geri bildirim — akor | — |
+| 6 | Çalarken geri bildirim — ritim | ✅ bitti |
+| 7 | Çalarken geri bildirim — akor | ⏳ sırada |
 | 8 | Akıllı günlük plan | — |
 | 9 | Şarkı modu | — |
 | 10 | Tab editörü ve oynatıcı | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 74 / 74 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 48 / 48 |
+| Vitest (birim) | ✅ 99 / 99 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 58 / 58 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -68,6 +68,25 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 | Çevrimdışı işlenen karışımın tepe değeri (varsayılan seviyeler, sınırlayıcıdan önce) | 0,85 (dört tarzda da; kırpılma yok) |
 | Karışımda partilerin RMS düzeyi — rock | davul 0,073 · bas 0,140 · akor 0,072 |
 | Aynı — blues / pop / funk | 0,063·0,142·0,053 / 0,072·0,141·0,066 / 0,073·0,101·0,044 |
+
+### Vuruş algılama ve ritim ölçümü (Aşama 6) — hedef ±10 ms
+
+Üretilmiş sinyaller, vuruş zamanları örnek hassasiyetinde bilinir. Değerler en kötü durumdur; hiçbir testte
+kaçırılan ya da sahte vuruş yok.
+
+| Sinyal | En kötü hata |
+|--------|--------------|
+| Tek tel vuruşları, 8 farklı perde (Karplus-Strong) | 1,76 ms |
+| Akor vuruşları (aşağı/yukarı), üst üste binen çınlama | 0,79 ms |
+| Hızlı on altılıklar (160 BPM), değişen vuruş gücü | 2,71 ms |
+| Beyaz gürültüde, SNR 30 dB / 20 dB | 0,13 ms / 2,79 ms |
+| 44,1 kHz örnekleme | 1,28 ms |
+| Boğuk teller (parlaklık 0,05) / yumuşak ataklı vuruşlar | 1,88 ms / 1,87 ms |
+| Tarayıcıda uçtan uca: 16 vuruş, bilinen sapmalar (−25…+30 ms), girişte 80 ms yapay gecikme | 1,90 ms |
+| Gecikme kalibrasyonu: 137 ms'lik geri dönüş yolu | 141 ms ölçüldü (+4 ms) |
+
+Not: algılayıcının sabit gecikme düzeltmesi bu üretilmiş sinyallerle ayarlandı; gerçek gitarda birkaç ms'lik
+sistematik fark olabilir ve bu fark gecikme kalibrasyonuyla birlikte giderilir.
 
 ## Yapılanlar
 
@@ -114,6 +133,15 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Ekranda şimdiki ve sıradaki akor, vuruş göstergesi, ölçü ızgarası.
 - Tona ve diziye uygun gam önerileri, notalarıyla.
 
+### Aşama 6 — Çalarken geri bildirim (ritim)
+- Vuruş algılama: logaritmik spektral akı, AudioWorklet içinde; her vuruş ses saatindeki zamanıyla bildirilir.
+- Ritim ekranı: metronomla ya da eşlik grubuyla birlikte çalma; dörtlük / sekizlik / üçleme / on altılık ya da
+  bir vuruş kalıbı hedef alınır; bir ölçü sayma, 4/8/16 ölçü.
+- Canlı gösterge: son vuruşların erken/geç şeridi, "12 ms erken" yazısı, vuruş sayacı.
+- Oturum sonu özeti: isabet ve tutarlılık puanı, ortalama ve mutlak sapma, kaçırılan/fazla vuruş, eğilim yorumu,
+  vuruş başına sapma grafiği. Sonuçlar saklanır; geçmiş grafiği ve listesi.
+- Gecikme kalibrasyonu (Ayarlar): otomatik (hoparlör → mikrofon), çalarak (kulaklık / doğrudan bağlantı), elle.
+
 ## Bilinen eksikler / hatalar
 
 - **GitHub'a push edilmedi, site yayınlanmadı.** `gh` CLI bu makinede giriş yapmamış. Tüm commit'ler yerelde.
@@ -122,6 +150,9 @@ Not: bunlar planlama ve işleme doğruluğudur. Hoparlörden çıkan sesin donan
 - Gecikme kalibrasyonu henüz yok; Aşama 6'da eklenecek (bkz. DECISIONS.md).
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - Geçiş egzersizinde sayım şimdilik elle (dokunarak ya da sonunda girerek); otomatik sayım Aşama 7'de.
+- Ritim ölçümünde hoparlörden çıkan metronom/eşlik sesi mikrofona girerse vuruş sayılır; kulaklık ya da doğrudan
+  bağlantı gerekir (ekranda uyarı var). Bunu ayıklayan bir yankı giderme yok.
+- "Çalarak" gecikme ölçümü kullanıcının kendi zamanlama eğilimini de içerir; yalnızca otomatik ölçüm test edildi.
 - Eşlik yalnızca 4/4'lük ölçüde. Seslerin tınısı kulakla değerlendirilmedi (yalnızca seviye ve zamanlama ölçüldü).
 - Oturum sayacı, uygulama görünür değilken (ekran kilitli, başka sekme) süre biriktirmez: iki sayım arası en çok
   5 sn sayılır. Ekran kapalıyken çalışılan süre günlüğe eksik yansır; gerekirse elle eklenebilir.

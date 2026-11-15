@@ -1,5 +1,6 @@
 import { effect, signal, type Signal } from '@preact/signals';
-import { kvGet, kvSet } from './db/db';
+import { kvGet } from './db/db';
+import { queueWrite } from './db/persist';
 
 export type Lang = 'tr' | 'en';
 
@@ -10,6 +11,10 @@ export const settings = {
   /** A4 referans frekansı (Hz). */
   a4: signal(440),
   tuningId: signal('standard'),
+  /** Çıkış + giriş toplam gecikmesi (ms): ritim ölçümünde vuruş zamanlarından düşülür. */
+  latencyMs: signal(0),
+  /** Kullanıcı gecikmeyi en az bir kez ölçtü ya da elle ayarladı. */
+  latencyCalibrated: signal(false),
 };
 
 type SettingsShape = typeof settings;
@@ -47,6 +52,6 @@ export async function loadSettings(): Promise<void> {
       first = false;
       return;
     }
-    kvSet('settings', snap).catch((err) => console.warn('[settings] save failed', err));
+    queueWrite('settings', snap);
   });
 }

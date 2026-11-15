@@ -1,8 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
-// Yayınlanmış siteye karşı duman testi:  SMOKE_URL=https://kullanici.github.io/gitar-app/ npm run smoke
+// Yayınlanmış siteye karşı duman testi:  SMOKE_URL=https://kullanici.github.io/guitar-coach/ npm run smoke
 const url = process.env.SMOKE_URL;
-if (!url) throw new Error('SMOKE_URL ortam değişkeni gerekli (ör. https://kullanici.github.io/gitar-app/)');
+if (!url) throw new Error('SMOKE_URL ortam değişkeni gerekli (ör. https://kullanici.github.io/guitar-coach/)');
 
 export default defineConfig({
   testDir: 'tests/smoke',

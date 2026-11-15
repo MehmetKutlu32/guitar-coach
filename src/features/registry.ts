@@ -6,6 +6,7 @@ import { ChordsScreen } from './chords/Chords';
 import { Home } from './home/Home';
 import { LogScreen } from './log/Log';
 import { MetronomeScreen } from './metronome/Metronome';
+import { RhythmScreen } from './rhythm/Rhythm';
 import { Settings } from './settings/Settings';
 import { Tuner } from './tuner/Tuner';
 
@@ -65,6 +66,15 @@ export const FEATURES: Feature[] = [
     component: BackingScreen,
     tool: true,
     activity: 'backing',
+  },
+  {
+    id: 'rhythm',
+    title: 'nav.rhythm',
+    desc: 'home.rhythm.desc',
+    icon: 'rhythm',
+    component: RhythmScreen,
+    tool: true,
+    activity: 'rhythm',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

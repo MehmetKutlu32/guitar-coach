@@ -78,6 +78,9 @@ export class BackingPlayer {
   readonly running = this.transport.running;
   readonly position = signal<BackingPosition | null>(null);
 
+  /** Her adım planlanırken çağrılır (ritim geri bildirimi hedef zamanlarını buradan alır). */
+  onPlannedStep: ((event: StepEvent, position: BackingPosition) => void) | null = null;
+
   private cfg: BackingConfig | null = null;
   private buses: Buses | null = null;
 
@@ -142,6 +145,7 @@ export class BackingPlayer {
     const cfg = this.cfg!;
     const pos = this.locate(event);
     if (!pos) return;
+    this.onPlannedStep?.(event, pos);
     const buses = this.ensureBuses();
     if (pos.countIn) {
       if (event.sub === 0) scheduleClick(ctx, buses.drums, event.time, event.beat === 0 ? 'accent' : 'beat');

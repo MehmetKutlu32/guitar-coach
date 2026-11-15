@@ -28,6 +28,12 @@ export function audioCtx(): AudioContext {
 let outputTap: AnalyserNode | null = null;
 const tapBuffer = new Float32Array(2048);
 
+/** Ana çıkışı (sınırlayıcıdan sonra) başka bir düğüme de bağlar: testlerde hoparlör→mikrofon yolunu taklit eder. */
+export function tapOutput(node: AudioNode): void {
+  audioCtx();
+  outputTap!.connect(node);
+}
+
 /** Ana çıkışın o anki RMS seviyesi (0..1). */
 export function outputRms(): number {
   if (!outputTap) return 0;

@@ -1,9 +1,11 @@
 import { StepClock } from './audio/clock';
-import { outputRms } from './audio/engine';
+import { outputRms, tapOutput } from './audio/engine';
 import { flushPersistent } from './db/persist';
 import { metronome, scheduleClick } from './audio/metronome';
 import { backing, BUS_GAIN, playBandEvent } from './features/backing/player';
 import { BAR_TICKS, eventsAt, TICKS_PER_BEAT, type StyleId } from './features/backing/styles';
+import type { RhythmResult } from './features/rhythm/analysis';
+import { rhythmOutcome } from './features/rhythm/session';
 import { resolveTemplate, TEMPLATES } from './music/progressions';
 
 /**
@@ -19,6 +21,10 @@ export interface GitarDebug {
   /** Bekleyen kalıcı durum yazmaları bitince çözülür. */
   flush(): Promise<void>;
   backing: typeof backing;
+  /** Ana çıkışı verilen düğüme bağlar (testte hoparlör→mikrofon geri dönüşü). */
+  tapOutput(node: AudioNode): void;
+  /** Son ritim ölçümünün kaydı (yoksa null). */
+  rhythmResult(): RhythmResult | null;
   /** Eşlik grubunu çevrimdışı işler; karışımın ve her partinin seviyesini döndürür. */
   renderBacking(
     templateId: string,
@@ -108,5 +114,14 @@ async function renderBacking(templateId: string, key: number, style: StyleId, bp
 }
 
 export function installDebugHooks(): void {
-  window.__gitar = { metronome, backing, renderClicks, renderBacking, outputRms, flush: flushPersistent };
+  window.__gitar = {
+    metronome,
+    backing,
+    renderClicks,
+    renderBacking,
+    outputRms,
+    tapOutput,
+    rhythmResult: () => rhythmOutcome.peek()?.result ?? null,
+    flush: flushPersistent,
+  };
 }

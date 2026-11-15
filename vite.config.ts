@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 // GitHub Pages alt dizini. Farklı bir repo adı için BASE_PATH ortam değişkeni verilebilir.
-const base = process.env.BASE_PATH ?? '/gitar-app/';
+const base = process.env.BASE_PATH ?? '/guitar-coach/';
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 function walk(dir: string): string[] {

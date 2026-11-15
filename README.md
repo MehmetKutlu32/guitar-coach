@@ -17,9 +17,9 @@ npx playwright install chromium   # yalnızca uçtan uca testler için
 ## Geliştirme
 
 ```bash
-npm run dev        # geliştirme sunucusu: http://localhost:5173/gitar-app/
+npm run dev        # geliştirme sunucusu: http://localhost:5173/guitar-coach/
 npm run build      # tür denetimi + üretim derlemesi (dist/)
-npm run preview    # derlenmiş sürümü sun: http://localhost:4173/gitar-app/
+npm run preview    # derlenmiş sürümü sun: http://localhost:4173/guitar-coach/
 ```
 
 Mikrofon yalnızca güvenli bağlamda (`https://` ya da `localhost`) çalışır. Telefonda denemek için yayınlanmış siteyi
@@ -40,7 +40,7 @@ npm run check      # build + birim + uçtan uca
 Yayınlanmış siteyi sınamak için:
 
 ```bash
-SMOKE_URL=https://KULLANICI.github.io/gitar-app/ npm run smoke
+SMOKE_URL=https://KULLANICI.github.io/guitar-coach/ npm run smoke
 ```
 
 ## Telefona yükleme (PWA)
@@ -71,23 +71,19 @@ olduğu gibi analiz edilir.
 `.github/workflows/deploy.yml`, `main` dalına her push'ta testleri çalıştırır; hepsi geçerse siteyi GitHub Pages'e
 yayınlar. Testler kalırsa yayınlamaz.
 
-Bu depo oluşturulurken `gh` CLI giriş yapmamıştı, bu yüzden uzak depo henüz kurulmadı. Kurmak için:
+Depo: <https://github.com/MehmetKutlu32/guitar-coach> · Site: <https://mehmetkutlu32.github.io/guitar-coach/>
+
+Pages'in çalışması için depo ayarlarında bir kez **Settings → Pages → Build and deployment → Source: GitHub Actions**
+seçilmiş olmalı. `gh` CLI ile aynı ayar:
 
 ```bash
-gh auth login
+gh api -X POST repos/MehmetKutlu32/guitar-coach/pages -f build_type=workflow
 ```
 
-```bash
-gh repo create gitar-app --public --source=. --remote=origin --push
-```
+Depoyu başka bir adla çatallarsan ek ayar gerekmez: iş akışı Vite `base` yolunu repo adından üretir; yerelde aynı
+yolu kullanmak için `BASE_PATH=/yeni-ad/` ortam değişkenini ver.
 
-```bash
-gh api -X POST repos/{owner}/gitar-app/pages -f build_type=workflow
-```
-
-Son komut Pages'i "GitHub Actions" kaynağıyla etkinleştirir. Site `https://KULLANICI.github.io/gitar-app/` adresinde
-yayınlanır. Depoya farklı bir ad verirsen ek ayar gerekmez: iş akışı Vite `base` yolunu repo adından üretir; yerelde
-aynı yolu kullanmak için `BASE_PATH=/yeni-ad/` ortam değişkenini ver.
+Commit mesajları İngilizce yazılır.
 
 ## Proje yapısı
 

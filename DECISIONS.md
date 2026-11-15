@@ -7,7 +7,7 @@
 - **Arayüz kütüphanesi: Preact + @preact/signals.** JSX ile hızlı geliştirme, ~5 KB çalışma zamanı. Durum için
   sinyaller kullanılıyor; ayrı bir durum yönetim kütüphanesi yok.
 - **Yönlendirme: hash tabanlı (`#/tuner`).** GitHub Pages'te sunucu tarafı yönlendirme ayarı gerektirmez, alt dizinde
-  (`/gitar-app/`) sorunsuz çalışır, service worker yalnızca `index.html`'i önbelleğe alarak tüm ekranları açabilir.
+  (`/guitar-coach/`) sorunsuz çalışır, service worker yalnızca `index.html`'i önbelleğe alarak tüm ekranları açabilir.
 - **Service worker elle yazıldı** (`public/sw.js`), eklenti (vite-plugin-pwa/workbox) kullanılmadı. Build sonunda
   `vite.config.ts` içindeki küçük bir eklenti dosya listesini ve içerik özetini `sw.js`'e yazar. Neden: bağımlılık
   yok, davranış tamamen görünür, Vite sürüm uyumsuzluğu riski yok. Strateji: tüm dosyalar kurulumda önbelleğe alınır,
@@ -15,7 +15,7 @@
 - **Önbellek eşleşmesinde `ignoreVary`.** Bazı sunucular (ör. `vite preview`) `Vary: Origin` gönderiyor; modül
   betikleri farklı istek başlıklarıyla geldiği için önbellek eşleşmiyor ve çevrimdışı açılış bozuluyordu. Dosya adları
   içerik özetli olduğundan `Vary`'yi yok saymak güvenli.
-- **Vite `base` = `/gitar-app/`**, `BASE_PATH` ortam değişkeniyle değiştirilebilir. CI bunu repo adından üretir.
+- **Vite `base` = `/guitar-coach/`**, `BASE_PATH` ortam değişkeniyle değiştirilebilir. CI bunu repo adından üretir.
   Manifest'te `start_url` ve `scope` göreli (`./`) olduğu için alt dizin değişse de doğru çözülür.
 - **Veri modeli: genel amaçlı 5 IndexedDB deposu** (`kv`, `sessions`, `results`, `items`, `blobs`). Kayıtlar `type`
   alanıyla ayrılır. Neden: 16 aşama boyunca her özellik için şema sürümü yükseltmek yerine tek şema; dışa/içe aktarma
@@ -112,6 +112,31 @@
   bunu kullanacak. Metronom kendi (eşdeğer) döngüsünü koruyor: çalışan, testli kodu yeniden yazmanın getirisi yok.
 - **Blues gamındaki mavi nota bemollü yazılır** (A blues: A C D Eb E G), ton diyezli olsa da.
 
+## Ritim geri bildirimi
+
+- **Vuruş algılama: logaritmik spektral akı** (20 ms Hann penceresi, ~2,7 ms adım, yalnızca artışlar toplanır).
+  İlk denenen yöntem zaman alanında enerji sıçramasıydı ve testlerde üç sorun çıkardı: (1) çınlayan kalın telin
+  her periyottaki enerji tepeleri vuruş sanıldı, (2) çınlayan akorun üstüne gelen vuruşlar kaçtı, (3) güçlü
+  vuruştan hemen sonraki zayıf vuruş kaçtı. Eşiği oynatmak birini düzeltip diğerini bozdu; yöntem değiştirildi.
+- **Pencere 10 ms değil 20 ms.** 10 ms'de frekans çözünürlüğü (94 Hz) kalın tellerin temel seslerini ayıramıyor,
+  boğuk vuruşlar çınlamanın içinde kayboluyordu. 20 ms'de hepsi yakalanıyor; zaman doğruluğu yine ~2–3 ms.
+- **Sabit gecikme düzeltmesi (pencerenin %40'ı)** üretilmiş sinyallerle ölçülerek belirlendi: Hann penceresi en yeni
+  örnekleri sıfıra yakın ağırlıkladığından atak akıda gecikmeli görünür.
+- **Vuruş zamanı worklet'te `currentFrame` üzerinden** ses saatine çevrilir; ana iş parçacığına mesajın ne zaman
+  ulaştığı ölçümü etkilemez.
+- **Sapma = vuruş zamanı − hedef zamanı − gecikme.** Gecikme, çıkış + giriş toplamıdır ve Ayarlar'da ölçülür.
+  Otomatik ölçüm hoparlör + mikrofon ister; kulaklık/doğrudan bağlantıda "çalarak ölç" kullanılır.
+- **Eşleştirme: en yakın çiftler önce**, her hedef ve vuruş en çok bir kez; pencere hedef aralığının %45'i,
+  en çok 150 ms. Eşleşmeyen vuruş "fazla", eşleşmeyen hedef "kaçırılan".
+- **İki ayrı puan.** İsabet: vuruş başına 10 ms'ye kadar 100, 100 ms'de 0 (doğrusal); kaçırılan 0 sayar, fazla
+  vuruş paydayı büyütür. Tutarlılık: sapmaların standart sapması 0 ms → 100, 40 ms → 0. Hep 30 ms geç çalan biri
+  düşük isabet ama tam tutarlılık alır — düzeltmesi gereken şey farklıdır, o yüzden ayrı gösterilir.
+- **Metronomla ölçümde bitiş, son ölçüden sonraki "bir"dir** ve o da hedeftir (müzikal bitiş). Metronoma
+  `endAtBar` eklendi; sonrasında tık çalmaz.
+- **Erken bitirilen ölçümde henüz çalınmamış hedefler değerlendirmeye girmez** (kaçırılmış sayılmaz).
+- **Ayar yazmaları da sıraya alındı** (`queueWrite`): ayar değişikliğinden hemen sonra sayfa kapanırsa son değerin
+  kaybolmaması ve testlerin `flush()` ile bekleyebilmesi için.
+
 ## Pratik günlüğü
 
 - **Süre, açık olan ekrana göre kendiliğinden ayrılır.** Kullanıcı her egzersiz için ayrı sayaç başlatmak zorunda
@@ -142,5 +167,11 @@
 
 ## Yayınlama
 
-- **`gh` CLI giriş yapmamış olduğu için** GitHub reposu oluşturulamadı ve push edilemedi. CLAUDE.md'deki kurala göre
-  bu adım atlandı; gerekli komutlar README'de. İş akışı dosyası (`.github/workflows/deploy.yml`) hazır.
+- **Depo `MehmetKutlu32/guitar-coach`.** `gh` CLI bu makinede giriş yapmadığı için depoyu kullanıcı kendisi
+  oluşturup uzak depoyu bağladı (2026-11-15). Depo adı planlanan `gitar-app` değil `guitar-coach` olduğundan yerel
+  varsayılan `base` yolu `/guitar-coach/` yapıldı. CI zaten yolu repo adından üretiyordu.
+- **Veritabanı ve yedek dosyası kimliği `gitar-app` kaldı.** Bunlar yayın yoluna bağlı değil; değiştirmek mevcut
+  kayıtları ve eski yedekleri geçersiz kılardı.
+- **Commit mesajları İngilizce, ortak yazar satırı yok** (kullanıcı isteği, 2026-11-15). İlk altı commit Türkçe
+  kaldı: yayınlanmış geçmişi yeniden yazmak zorla gönderme (force push) gerektirir, bu açıkça istenmeden yapılmadı.
+- **`gh` olmadan CI ve Pages durumu** GitHub'ın herkese açık API'sinden ve yayınlanan siteden okunur.

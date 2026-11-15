@@ -29,12 +29,16 @@ export function persistent<T extends object>(key: string, defaults: T): Persiste
     state,
     update(patch) {
       state.value = { ...state.value, ...patch };
-      const value = state.value;
-      pending = pending
-        .then(() => kvSet(key, value))
-        .catch((err) => console.warn(`[persist] ${key} yazılamadı`, err));
+      queueWrite(key, state.value);
     },
   };
+}
+
+/** Bir anahtar/değer yazmasını sıraya ekler. */
+export function queueWrite(key: string, value: unknown): void {
+  pending = pending
+    .then(() => kvSet(key, value))
+    .catch((err) => console.warn(`[persist] ${key} yazılamadı`, err));
 }
 
 /** Bekleyen tüm yazmalar bitince çözülür. */

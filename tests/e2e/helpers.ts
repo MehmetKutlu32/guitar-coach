@@ -8,7 +8,7 @@ export const ROOT = join(here, '..', '..');
 export const FAKE_MIC_WAV = join(here, '.tmp', 'fake-mic-a2.wav');
 export const FAKE_MIC_FREQ = 110;
 /** Uygulamanın yayınlandığı alt dizin (vite.config.ts ile aynı kaynak). */
-export const BASE_PATH = process.env.BASE_PATH ?? '/gitar-app/';
+export const BASE_PATH = process.env.BASE_PATH ?? '/guitar-coach/';
 
 /** Chromium'un sahte mikrofonu için 16 bit mono WAV yazar (harmonikli, tam periyotlu ton). */
 export function writeFakeMicWav(): void {
