@@ -10,6 +10,7 @@ import { RhythmScreen } from './rhythm/Rhythm';
 import { Settings } from './settings/Settings';
 import { SongsScreen } from './songs/Songs';
 import { TabsScreen } from './tabs/Tabs';
+import { TheoryScreen } from './theory/Theory';
 import { Tuner } from './tuner/Tuner';
 
 export interface Feature {
@@ -95,6 +96,15 @@ export const FEATURES: Feature[] = [
     component: TabsScreen,
     tool: true,
     activity: 'tab',
+  },
+  {
+    id: 'theory',
+    title: 'nav.theory',
+    desc: 'home.theory.desc',
+    icon: 'fretboard',
+    component: TheoryScreen,
+    tool: true,
+    activity: 'theory',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

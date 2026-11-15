@@ -2184,3 +2184,159 @@ a.btn {
     align-items: start;
   }
 }
+
+/* ---------- Sap ve teori ---------- */
+
+.neck {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.neck-board {
+  fill: #20242e;
+}
+
+.neck-fret {
+  stroke: #596072;
+  stroke-width: 1.4;
+}
+
+.neck-nut {
+  stroke: var(--text);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.neck-string {
+  stroke: #8690a3;
+}
+
+.neck-string.hl {
+  stroke: var(--accent);
+}
+
+.neck-inlay {
+  fill: #3a4050;
+}
+
+.neck-num {
+  fill: #6f7889;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.neck-num.mark {
+  fill: var(--muted);
+  font-weight: 800;
+}
+
+.neck-dot {
+  cursor: pointer;
+}
+
+.neck-hit {
+  fill: transparent;
+}
+
+.neck-dot circle {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+
+.neck-dot text {
+  fill: var(--bg);
+  font-size: 9.5px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.neck-dot.root circle {
+  fill: var(--accent);
+}
+
+.neck-dot.faded circle {
+  fill: #3a4050;
+}
+
+.neck-dot.faded text {
+  fill: var(--muted);
+}
+
+.neck-dot.target circle {
+  fill: var(--info);
+}
+
+.neck-dot.good circle {
+  fill: var(--good);
+}
+
+.neck-dot.bad circle {
+  fill: var(--bad);
+}
+
+.degree-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.degree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 42px;
+  padding: 6px 4px;
+  background: var(--surface-2);
+  border-radius: 10px;
+}
+
+.degree.root strong {
+  color: var(--accent);
+}
+
+.degree small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.game-prompt {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.game-feedback {
+  min-height: 28px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: pre-wrap;
+}
+
+.game-feedback.good {
+  color: var(--good);
+}
+
+.game-feedback.bad {
+  color: var(--bad);
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.answers.frets {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.answer {
+  min-width: 0;
+  padding: 0 2px;
+  min-height: 56px;
+  font-size: 17px;
+}

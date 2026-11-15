@@ -159,6 +159,26 @@
 - **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
   1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
 
+## Sap ve teori
+
+- **Sap yatay ve 12 perdelik pencerelerle gösterilir** (0–12, 6–17, 13–24), kaydırılan 24 perdelik tek şerit
+  yerine. 390 px'te 24 perde okunmaz olurdu; yatay kaydırma ise tek elle kullanımı ve ekran görüntüsüyle
+  doğrulamayı zorlaştırır. Yön tab ile aynı: kalın Mi altta.
+- **Noktaların dokunma alanı perde hücresinin tamamıdır** (görünmez dikdörtgen). 12 perde mobil genişliğe
+  sığdığından hücre ~24×22 px; 44 px hedefi burada geometrik olarak mümkün değil. Bu yüzden sapa dokunmak yalnızca
+  ikincil bir işlev (notayı dinleme); oyunda yanıtlar sapa değil büyük düğmelere basılarak verilir.
+- **Derece adları majör gama göre yazılır** (Lidyen'de "#4", Frigyen'de "b2"); yedi notalı olmayan gamlarda
+  (pentatonik, blues) genel bemollü adlar kullanılır.
+- **CAGED biçimleri açık akor verisinden türetilir** (`OPEN_CHORDS`'taki C, A, G, E, D taşınır), ayrı bir biçim
+  tablosu tutulmaz: akor kütüphanesiyle tutarlı kalır. Her kök için biçimin sapta bulunduğu en alçak konum
+  gösterilir; yalnızca majör biçimler var.
+- **"Perdeyi bul" modunda açık tel sorulmaz ve 12 perde sonrası da doğru sayılır**: aynı telde 0 ve 12 aynı
+  notadır, tek doğru yanıtlı soru kalsın diye.
+- **Oyun geçmişi ayar başına ayrı tutulur** (tür + perde aralığı + doğal notalar): kolay ayarın %100'ü zor
+  ayarın "en iyi"sini gölgelemesin. Puan doğruluk yüzdesi; süre ayrıca gösterilir, puana katılmaz (hız baskısı
+  ezberi değil tahmini ödüllendirir).
+- **Yanlış yanıtın geri bildirimi daha uzun kalır** (1,4 sn; doğruda 0,55 sn): doğrusunu okumaya zaman kalsın.
+
 ## Tab editörü ve oynatıcı
 
 - **Izgara tabanlı model**: 4/4, ölçü başına 16 adım, adım başına 6 tel değeri. Serbest süreli nota modeli yerine

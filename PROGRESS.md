@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **10 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 11 — Fretboard ve teori**
+Son güncelleme: 2026-11-15 · Biten aşama: **11 / 16** (Katman 1 ve 2 tamam) · Sıradaki: **Aşama 12 — Kulak eğitimi**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -18,8 +18,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 8 | Akıllı günlük plan | ✅ bitti |
 | 9 | Şarkı modu | ✅ bitti |
 | 10 | Tab editörü ve oynatıcı | ✅ bitti |
-| 11 | Fretboard ve teori | ⏳ sırada |
-| 12 | Kulak eğitimi | — |
+| 11 | Fretboard ve teori | ✅ bitti |
+| 12 | Kulak eğitimi | ⏳ sırada |
 | 13 | Kayıt ve karşılaştırma | — |
 | 14 | Kendi ses dosyasıyla çalışma | — |
 | 15 | Oyunlaştırma | — |
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 156 / 156 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 88 / 88 |
+| Vitest (birim) | ✅ 172 / 172 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 96 / 96 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -202,6 +202,20 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Yavaşlatma (%50 / %75 / %100, çalarken de değişir) ve bölüm döngüsü (başlangıç–bitiş ölçüsü).
 - Riff kütüphanesi: kendi tabların (kaydet / düzenle / sil) + 5 hazır teknik egzersiz (kopyalanıp düzenlenebilir).
 
+### Aşama 11 — Fretboard ve teori
+- "Sap ve teori" ekranı, dört bölüm: Gamlar, Arpejler, CAGED, Oyun. Seçimler kalıcı.
+- İnteraktif sap (SVG, 12 perdelik pencere: 0–12, 6–17, 13–24): noktalarda nota adı ya da derece, kök notalar
+  turuncu; noktaya dokununca o nota sentez gitar sesiyle çalınır (dokunma alanı perde hücresinin tamamı).
+- Gamlar ve modlar: 12 kök × `src/music/scales.ts`'teki tüm gamlar; nota/derece satırı, aralık formülü
+  (tam/yarım), modlarda "hangi majör gamın kaçıncı derecesi" açıklaması, gamı çıkıp inerek çalma.
+- Arpejler: 12 akor türü (maj, min, 7, maj7, m7, m7b5, dim, dim7, aug, sus4, 6, 9), nota ve derece gösterimi, çalma.
+- CAGED: beş biçim (C, A, G, E, D) her kök için sapta; akor notaları parlak, çevredeki majör gam notaları soluk;
+  pencere biçimin bulunduğu bölgeye kendiliğinden kayar.
+- Nota ezberleme oyunu: "notayı adlandır" (sapta işaretli nota) ve "perdeyi bul" (tel + nota verilir); 10 soruluk
+  tur, 0–5 / 0–12. perde, yalnızca doğal notalar seçeneği; doğru/yanlış geri bildirimi (yanlışta doğrusu 1,4 sn
+  gösterilir), tur özeti ve kaçırılan notalar; ayar başına en iyi / son / tur sayısı / en hızlı (IndexedDB `results`).
+- Günlükte ayrı egzersiz türü: "Sap ve teori".
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -215,6 +229,11 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - **Aşama 9 ve sonrası GitHub'a gönderilmedi** (kullanıcı isteği, 2026-11-15: "push atma"). Commit'ler yerelde;
   `git status -sb` kaç commit ileride olduğunu gösterir.
+- **Aşama 11 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- Sap ve teori: yalnızca standart akort (alternatif akortlarda sap gösterilmez); CAGED yalnızca majör akor
+  biçimleri (minör biçimler yok); oyun mikrofonla çalarak yanıtlanamıyor (yalnızca düğmeyle), zaman sınırı yok;
+  günlük plan henüz gam/oyun önermiyor. Mobilde sap noktalarının dokunma alanı ~24×22 px (12 perde 390 px'e
+  sığdığı için 44 px mümkün değil); asıl etkileşimler büyük düğmelerle yapılır.
 - Tab: yalnızca 4/4 ve on altılık ızgara (üçleme yok); çekiç, kaydırma, bend gibi teknik işaretleri yok; düz
   metin tab içe aktarma yok (dışa yazma fonksiyonu `toAscii` var ama arayüze bağlı değil).
 - Şarkı modunda her akor aynı sürer ("akor başına vuruş"); ChordPro süre taşımadığı için akorların gerçek ritmi
@@ -248,5 +267,8 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
   `ACTIVITIES`, i18n'de `activity.<ad>`. Günlük hesapları: `src/features/log/stats.ts`.
 - Sahte saatle (`page.clock`) testte: saat durdurulmuşsa Preact `useEffect`'leri de bekler; ölçüm bitince
   `page.clock.resume()` çağır. Sayfa geçişinden sonra `runFor`'dan önce başlığın değiştiğini bekle.
+- Sap hesapları (gam/arpej konumları, CAGED, oyun soruları) saf fonksiyonlar: `src/music/fretboard.ts`; sap
+  çizimi `src/ui/Fretboard.tsx` (başka ekranlarda da kullanılabilir: `dots` + `start`). Kulak eğitimi skorları için
+  oyunun `results` deposundaki `type` alanlı kayıt düzeni örnek alınabilir.
 - Akor verisi ve teori: `src/music/chords.ts`, `src/music/theory.ts`. Grafikler: `src/ui/charts.tsx`.
 - Windows'ta Git Bash heredoc'ları tek tırnak sayısı tek olunca bozuluyor; dosyaları doğrudan yaz.
