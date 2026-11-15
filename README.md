@@ -3,7 +3,29 @@
 Elektro gitar çalışanlar için telefonda ve bilgisayarda çalışan, **çevrimdışı kullanılabilen** bir çalışma uygulaması
 (PWA). Sunucu yok: tüm veriler cihazında kalır, tüm sesler tarayıcıda üretilir.
 
-Hangi özelliklerin hazır olduğu için [PROGRESS.md](PROGRESS.md), tasarım kararları için [DECISIONS.md](DECISIONS.md).
+Ayrıntılı durum, ölçülen doğruluk oranları ve bilinen eksikler için [PROGRESS.md](PROGRESS.md), tasarım kararları
+için [DECISIONS.md](DECISIONS.md).
+
+## Özellikler
+
+| Ekran | Ne yapar |
+|-------|----------|
+| Ana sayfa | Seviye testi, 15 / 30 / 45 dakikalık günlük plan |
+| Akort | YIN perde algılama, nota + cent göstergesi, standart ve alternatif akortlar (Drop D, yarım ton pes…) |
+| Metronom | Kaymayan tıklar, vurgu, ölçü tipleri, tap tempo, tempo antrenörü, vuruş (strumming) kalıpları |
+| Akorlar | Açık, bare ve power akor diyagramları, geçiş egzersizi, mikrofonla akor tanıma ve otomatik sayım |
+| Eşlik | Sentez davul + bas + akorla backing track; hazır diziler ya da kendi dizin, tona uygun gam önerisi |
+| Ritim | Çalarken vuruş algılama, erken/geç sapma (ms), tutarlılık puanı, oturum özeti |
+| Şarkılar | ChordPro düzenleyici, akorlar sözlerin üstünde, transpoze, kapo, eşlikle otomatik kaydırma |
+| Tab | Tab yazma, sentez gitarla çalma, yavaşlatma, bölüm döngüsü, riff kütüphanesi |
+| Sap ve teori | Gamlar, modlar, arpejler, CAGED, sapta nota ezberleme oyunu |
+| Kulak eğitimi | Aralık ve akor türü tanıma, seviyeler, skor takibi |
+| Kayıt | Çalışmanı kaydetme, dalga formu, iki kaydı yan yana dinleme (A/B) |
+| Ses dosyası | Kendi dosyanı tonu bozmadan yavaşlatma, ton değiştirme, A–B döngüsü |
+| Günlük | Oturum zamanlayıcı, egzersiz bazında süre, günlük seri, haftalık/aylık grafikler |
+| Ayarlar | Dil (TR/EN), giriş cihazı, seviye göstergesi, gecikme kalibrasyonu, JSON yedekleme |
+
+Hazır içerik (egzersizler, çalışma şarkıları, riff'ler) bu uygulama için yazıldı; telifli söz, tab ya da nota yoktur.
 
 ## Kurulum
 
@@ -37,10 +59,16 @@ npm run check      # build + birim + uçtan uca
 - Uçtan uca testler Chromium'un sahte mikrofonuna üretilmiş bir WAV dosyası verir.
 - Her test çalışmasında ekran görüntüleri `screenshots/mobile` ve `screenshots/desktop` altına yazılır.
 
-Yayınlanmış siteyi sınamak için:
+Yayınlanmış siteyi sınamak için (bash):
 
 ```bash
-SMOKE_URL=https://KULLANICI.github.io/guitar-coach/ npm run smoke
+SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke
+```
+
+Windows PowerShell'de:
+
+```powershell
+$env:SMOKE_URL = "https://mehmetkutlu32.github.io/guitar-coach/"; npm run smoke
 ```
 
 ## Telefona yükleme (PWA)
@@ -73,6 +101,10 @@ yayınlar. Testler kalırsa yayınlamaz.
 
 Depo: <https://github.com/MehmetKutlu32/guitar-coach> · Site: <https://mehmetkutlu32.github.io/guitar-coach/>
 
+> **Şu anki durum:** site henüz yayında değil. Depo özel; GitHub'ın ücretsiz planında özel depodan Pages
+> yayınlanmaz. Yayınlamak için depoyu herkese açık yap (ya da Pages destekleyen bir plana geç), sonra aşağıdaki
+> ayarı yap.
+
 Pages'in çalışması için depo ayarlarında bir kez **Settings → Pages → Build and deployment → Source: GitHub Actions**
 seçilmiş olmalı. `gh` CLI ile aynı ayar:
 
@@ -83,19 +115,26 @@ gh api -X POST repos/MehmetKutlu32/guitar-coach/pages -f build_type=workflow
 Depoyu başka bir adla çatallarsan ek ayar gerekmez: iş akışı Vite `base` yolunu repo adından üretir; yerelde aynı
 yolu kullanmak için `BASE_PATH=/yeni-ad/` ortam değişkenini ver.
 
-Commit mesajları İngilizce yazılır.
-
 ## Proje yapısı
 
 ```
 src/
-  audio/        AudioContext, giriş yönetimi, AudioWorklet, sentez (Karplus-Strong)
-  dsp/          saf DSP kodu: FFT, YIN perde algılama, nota hesapları
+  audio/        AudioContext, giriş, metronom ve saat, kayıt, AudioWorklet'ler
+                (analyzer: perde / vuruş / kroma · stretch: zaman esnetme), sentez (Karplus-Strong, davul, bas)
+  dsp/          saf DSP kodu: FFT, YIN, vuruş algılama, kroma, WSOLA zaman esnetme
+  music/        müzik teorisi: akorlar, gamlar, diziler, akor tanıma, ChordPro, tab, sap, kulak eğitimi
   db/           IndexedDB katmanı, dışa/içe aktarma
-  features/     ekranlar (akort, ayarlar, …) ve saf mantıkları
+  features/     ekranlar (her biri bir klasör) ve saf mantıkları; kayıt: features/registry.ts
   i18n/         Türkçe ve İngilizce metinler
-  ui/           ortak arayüz parçaları
+  ui/           ortak arayüz parçaları (sap, dalga formu, grafikler, ikonlar)
+  styles/       CSS (koyu tema)
 tests/unit/     Vitest
 tests/e2e/      Playwright
 tests/smoke/    yayınlanmış site için duman testi
 ```
+
+## Katkı
+
+- Commit mesajları İngilizce yazılır.
+- Her commit öncesi `npm run check` (build + birim + uçtan uca) yeşil olmalı.
+- Yeni ekran eklemek ve test kancaları için [PROGRESS.md](PROGRESS.md) → "Devam edecek kişi için notlar".
