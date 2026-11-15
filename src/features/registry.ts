@@ -7,6 +7,7 @@ import { EarScreen } from './ear/Ear';
 import { Home } from './home/Home';
 import { LogScreen } from './log/Log';
 import { MetronomeScreen } from './metronome/Metronome';
+import { RecorderScreen } from './recorder/Recorder';
 import { RhythmScreen } from './rhythm/Rhythm';
 import { Settings } from './settings/Settings';
 import { SongsScreen } from './songs/Songs';
@@ -115,6 +116,14 @@ export const FEATURES: Feature[] = [
     component: EarScreen,
     tool: true,
     activity: 'ear',
+  },
+  {
+    id: 'record',
+    title: 'nav.record',
+    desc: 'home.record.desc',
+    icon: 'record',
+    component: RecorderScreen,
+    tool: true,
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

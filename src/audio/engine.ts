@@ -43,6 +43,13 @@ export function outputRms(): number {
   return Math.sqrt(sum / tapBuffer.length);
 }
 
+/** Ana çıkışın son 2048 örneği (testlerde çıkan sesin perdesini ölçmek için). */
+export function outputSamples(): Float32Array {
+  const out = new Float32Array(tapBuffer.length);
+  if (outputTap) outputTap.getFloatTimeDomainData(out);
+  return out;
+}
+
 export function masterOut(): AudioNode {
   audioCtx();
   return master!;

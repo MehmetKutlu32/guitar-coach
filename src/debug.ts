@@ -1,5 +1,8 @@
 import { StepClock } from './audio/clock';
-import { outputRms, tapOutput } from './audio/engine';
+import { audioCtx, outputRms, outputSamples, tapOutput } from './audio/engine';
+import { PitchDetector } from './dsp/yin';
+import { loadBuffer } from './features/recorder/player';
+import { rmsLevel } from './features/recorder/takes';
 import { flushPersistent } from './db/persist';
 import { metronome, scheduleClick } from './audio/metronome';
 import { backing, BUS_GAIN, playBandEvent } from './features/backing/player';
@@ -21,6 +24,10 @@ export interface GitarDebug {
   outputRms(): number;
   /** Bekleyen kalıcı durum yazmaları bitince çözülür. */
   flush(): Promise<void>;
+  /** Ana çıkışta o an duyulan sesin perdesi (Hz); perde yoksa 0. */
+  outputFreq(): number;
+  /** Kayıtlı bir sesi çözer; süresini, seviyesini ve ortasındaki perdeyi döndürür. */
+  analyzeTake(id: string): Promise<{ seconds: number; rms: number; freq: number }>;
   backing: typeof backing;
   tabPlayer: typeof tabPlayer;
   /** Ana çıkışı verilen düğüme bağlar (testte hoparlör→mikrofon geri dönüşü). */
@@ -115,6 +122,22 @@ async function renderBacking(templateId: string, key: number, style: StyleId, bp
   return { all: await measure('all'), drums: await measure('drums'), bass: await measure('bass'), chords: await measure('chords') };
 }
 
+function outputFreq(): number {
+  const samples = outputSamples();
+  const r = new PitchDetector(audioCtx().sampleRate, { bufferSize: samples.length }).detect(samples);
+  return r.clarity > 0.8 ? r.freq : 0;
+}
+
+async function analyzeTake(id: string): Promise<{ seconds: number; rms: number; freq: number }> {
+  const buffer = await loadBuffer(id);
+  const data = buffer.getChannelData(0);
+  const size = 4096;
+  const from = Math.max(0, Math.floor(data.length / 2) - size / 2);
+  const mid = data.subarray(from, from + size);
+  const freq = mid.length >= size ? new PitchDetector(buffer.sampleRate, { bufferSize: size }).detect(mid).freq : 0;
+  return { seconds: buffer.duration, rms: rmsLevel(data), freq };
+}
+
 export function installDebugHooks(): void {
   window.__gitar = {
     metronome,
@@ -126,5 +149,7 @@ export function installDebugHooks(): void {
     tapOutput,
     rhythmResult: () => rhythmOutcome.peek()?.result ?? null,
     flush: flushPersistent,
+    outputFreq,
+    analyzeTake,
   };
 }

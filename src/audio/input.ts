@@ -178,6 +178,11 @@ export async function acquireInput(): Promise<() => void> {
   };
 }
 
+/** Açık girişin ham ses düğümü (kayıt ve canlı efektler için); giriş kapalıysa null. */
+export function inputNode(): AudioNode | null {
+  return source;
+}
+
 export function onAnalysis(listener: Listener): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);

@@ -159,6 +159,26 @@
 - **Performans: WebAssembly'ye gerek görülmedi.** Kroma için saniyede ~23 adet 8192'lik FFT, vuruş için ~375 adet
   1024'lük FFT; saf TypeScript ile worklet içinde çalışıyor. Gerçek cihazda yük ölçülmedi.
 
+## Kayıt ve karşılaştırma
+
+- **Kayıt MediaRecorder ile sıkıştırılmış alınır** (Opus/WebM, 96 kbit/sn; yoksa tarayıcının desteklediği biçim),
+  ham PCM/WAV olarak değil. WAV dakikada ~5 MB tutar; Opus ~0,7 MB. Bedeli: biçim tarayıcıya bağlı ve kayıt
+  kayıplı; çalışma kaydı için yeterli.
+- **Ses verisi IndexedDB'de base64 metin olarak saklanır** (Blob olarak değil). "Tüm veriler JSON olarak
+  dışa/içe aktarılabilsin" kuralı için: Blob, JSON'a boş nesne olarak yazılırdı. Bedeli %33 fazla yer; karşılığında
+  dışa/içe aktarma kodu hiç değişmedi.
+- **Özet ve ses ayrı depolarda** (`items` / `blobs`, aynı kimlik): liste ekranı yalnızca özetleri okur; dalga
+  formu için ses çözülmez (tepe değerleri kayıt anında hesaplanıp özetle saklanır).
+- **Dalga formu kaydın kendi tepe değerine göre ölçeklenir** (en çok 4 kat büyütme): kısık alınmış kayıt düz
+  çizgi gibi görünmesin. Mutlak seviye bilgisi için ayrı uyarılar var (sessiz / kırpılmış).
+- **Karşılaştırmada iki kayıt aynı anda çalar, yalnızca biri duyulur**; A/B geçişi kazanç değiştirerek yapılır.
+  Kaydı durdurup diğerini aynı konumdan başlatmaya göre geçiş kesintisiz ve konum kaymaz. Kayıtlar hizalanmaz
+  (ikisi de kendi başından başlar); otomatik hizalama (çapraz korelasyon) kapsam dışı bırakıldı.
+- **Kayıt girişten alınır, uygulamanın çıkışı karıştırılmaz.** Metronom/eşlik ancak mikrofon duyarsa kayda girer.
+  Uygulama sesini kayda karıştırmak, çalma motorlarının yalnızca kendi ekranlarında çalışması kararıyla çelişirdi.
+- **Çok kısa (< 0,4 sn) kayıt saklanmaz**; sessiz ya da kırpılmış kayıt saklanır ama uyarı gösterilir (kullanıcı
+  girişin yanlış seçildiğini hemen anlasın).
+
 ## Kulak eğitimi
 
 - **Seviye ilerlemesi ayrı saklanmaz, sonuç kayıtlarından türetilir** (`unlockedLevel`): seviye N, 1…N−1'in her

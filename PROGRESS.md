@@ -1,6 +1,6 @@
 # İlerleme
 
-Son güncelleme: 2026-11-15 · Biten aşama: **12 / 16** (Katman 1, 2 ve 3 tamam) · Sıradaki: **Aşama 13 — Kayıt ve karşılaştırma**
+Son güncelleme: 2026-11-15 · Biten aşama: **13 / 16** (Katman 1, 2 ve 3 tamam) · Sıradaki: **Aşama 14 — Kendi ses dosyasıyla çalışma**
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -20,8 +20,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 10 | Tab editörü ve oynatıcı | ✅ bitti |
 | 11 | Fretboard ve teori | ✅ bitti |
 | 12 | Kulak eğitimi | ✅ bitti |
-| 13 | Kayıt ve karşılaştırma | ⏳ sırada |
-| 14 | Kendi ses dosyasıyla çalışma | — |
+| 13 | Kayıt ve karşılaştırma | ✅ bitti |
+| 14 | Kendi ses dosyasıyla çalışma | ⏳ sırada |
 | 15 | Oyunlaştırma | — |
 | 16 | Canlı efektler | — |
 
@@ -30,8 +30,8 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 184 / 184 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 104 / 104 |
+| Vitest (birim) | ✅ 193 / 193 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 110 / 110 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -230,6 +230,21 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
   başına doğruluk çubukları (en zayıf başta). Sonuçlar IndexedDB `results` deposunda (`type: 'ear'`).
 - Günlükte ayrı egzersiz türü: "Kulak eğitimi". Türkçe (K3, T5…) ve İngilizce (m3, P5…) aralık adları.
 
+### Aşama 13 — Kayıt ve karşılaştırma
+- "Kayıt" ekranı: Ayarlar'da seçili girişten kayıt (MediaRecorder; Opus/WebM, desteklenmezse MP4), süre sayacı,
+  canlı seviye izi ve seviye çubuğu, "Durdur ve kaydet" / "Vazgeç"; en uzun 10 dakika (kendiliğinden durur).
+- Kayıt bitince ses çözülür; süre, dalga formu (240 tepe değeri) ve en yüksek seviye hesaplanıp kayıtla saklanır.
+  Uyarılar: çok kısa (saklanmaz), sessiz kayıt, kırpılma (seviye çok yüksek).
+- Kayıt listesi (ad, tarih, süre, küçük dalga formu, toplam boyut); seçili kayıtta büyük dalga formu, çalma /
+  durdurma, dalga formuna dokunarak konum seçme, ad değiştirme, silme.
+- Yan yana dinleme: seçili kayıt (A) başka bir kayıtla (B) karşılaştırılır; iki dalga formu alt alta, ikisi aynı
+  andan birlikte çalar, çalarken A/B düğmesiyle duyulan kayıt kesintisiz değişir.
+- Saklama: özet `items` deposunda (`type: 'recording'`), ses `blobs` deposunda base64 metin olarak — JSON
+  dışa/içe aktarmada kayıtlar da taşınır.
+
+Ölçüm (uçtan uca, üretilmiş 220 Hz giriş): kayıt çözülünce ortasındaki perde 219,9–220,1 Hz, ~1,7 sn'lik kayıt
+~21 kB (~12 kB/sn). Çalarken çıkıştaki perde 220 Hz ±3; A/B geçişinde çıkış 220 ↔ 330 Hz arasında değişiyor.
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -243,7 +258,12 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - **Aşama 9 ve sonrası GitHub'a gönderilmedi** (kullanıcı isteği, 2026-11-15: "push atma"). Commit'ler yerelde;
   `git status -sb` kaç commit ileride olduğunu gösterir.
-- **Aşama 11 ve 12 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- **Aşama 11, 12 ve 13 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- Kayıt: yalnızca başsız Chromium'da sınandı (Opus/WebM). Safari/iOS'ta MediaRecorder MP4/AAC üretir; bu yol
+  ve gerçek mikrofonla kayıt denenmedi. Kayıt yalnızca kendi ekranı açıkken alınır (ekrandan çıkınca atılır);
+  metronom ya da eşlikle birlikte kayıt, kırpma (trim), ses dosyası olarak dışa aktarma yok. Sesler base64
+  saklandığı için çok kayıtta JSON yedeği büyür (dakikası ~1 MB); depolama kotası dolarsa yalnızca "saklanamadı"
+  uyarısı çıkar. A/B karşılaştırmada kayıtlar hizalanmaz (ikisi de kendi başından başlar).
 - Kulak eğitimi: çalınan seslerin doğruluğu yalnızca saf fonksiyon düzeyinde sınandı (hangi notalar, ne zaman);
   uçtan uca testler yalnızca "ses çıktı" diye bakıyor, perdeyi ölçmüyor. Akorlar hep kök konumunda ve dar
   dizilimde (çevrim, açık dizilim yok); melodi/ritim dikte, gam tanıma ve mikrofonla (çalarak) yanıt yok.
@@ -291,6 +311,11 @@ gitarda oranların daha düşük olması beklenir ve bu ölçülmedi.
   eklemek için `INTERVAL_LEVELS` / `CHORD_LEVEL_ITEMS`'e satır eklemek yeter; yeni akor türü için ayrıca
   `ear.chord.<tür>` metni gerekir. Oyunlaştırma (Aşama 15) için hazır veri: `results` deposunda `type: 'ear'`
   ve `type: 'fretgame'` kayıtları.
+- Kayıt: giriş düğümü `inputNode()` (`src/audio/input.ts`), kayıt motoru `src/audio/recorder.ts`, çözme ve
+  senkron A/B çalma `src/features/recorder/player.ts`, saf hesaplar `takes.ts`, dalga formu `src/ui/Waveform.tsx`.
+  Aşama 14 (ses dosyası) `decodeAudio` + `Waveform`'u, Aşama 16 (canlı efektler) `inputNode()`'u kullanabilir.
+- Çıkan sesin perdesini uçtan uca ölçmek için `window.__gitar.outputFreq()`; kayıtlı sesi ölçmek için
+  `analyzeTake(id)`. Testte giriş sinyalini sayfa açıkken değiştirmek için bkz. `recorder.spec.ts` (`setInputFreq`).
 - Uçtan uca testte veritabanına hazır veri koymak için bkz. `ear.spec.ts` ("son seviye" testi): sayfada
   `indexedDB.open('gitar-app')` ile doğrudan yazıp sayfayı yenile.
 - Akor verisi ve teori: `src/music/chords.ts`, `src/music/theory.ts`. Grafikler: `src/ui/charts.tsx`.
