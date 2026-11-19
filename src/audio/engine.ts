@@ -21,11 +21,16 @@ export function audioCtx(): AudioContext {
     outputTap = ctx.createAnalyser();
     outputTap.fftSize = 2048;
     limiter.connect(outputTap);
+    // Canlı efektler için: ana sınırlayıcıyı (ileriye bakan kompresör → ek gecikme) atlayan doğrudan çıkış.
+    direct = ctx.createGain();
+    direct.connect(ctx.destination);
+    direct.connect(outputTap);
   }
   return ctx;
 }
 
 let outputTap: AnalyserNode | null = null;
+let direct: GainNode | null = null;
 const tapBuffer = new Float32Array(2048);
 
 /** Ana çıkışı (sınırlayıcıdan sonra) başka bir düğüme de bağlar: testlerde hoparlör→mikrofon yolunu taklit eder. */
@@ -48,6 +53,15 @@ export function outputSamples(): Float32Array {
   const out = new Float32Array(tapBuffer.length);
   if (outputTap) outputTap.getFloatTimeDomainData(out);
   return out;
+}
+
+/**
+ * Sınırlayıcısız, gecikmesiz çıkış (canlı efektler kendi güvenlik kırpıcısını kullanır).
+ * Ölçüm kancaları (`outputRms`, `outputSamples`) bu çıkışı da görür.
+ */
+export function directOut(): AudioNode {
+  audioCtx();
+  return direct!;
 }
 
 export function masterOut(): AudioNode {

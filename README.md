@@ -10,9 +10,13 @@ yalnızca senin cihazında kalır.
 
 **Her gün**
 - **Bugünün planı:** 15, 30 ya da 45 dakikan mı var? Uygulama, geçmiş sonuçlarına bakarak o günkü çalışmayı
-  hazırlar: zorlandığın akor geçişleri, ritim çalışması, uzun süredir dokunmadığın konular. "Başla"ya bas, ilgili
-  araç doğru ayarlarla açılsın.
+  hazırlar: zorlandığın akor geçişleri, ritim çalışması, kulak eğitimi, sap çalışması, senin seviyene göre
+  yavaşlatılmış bir şarkı ya da riff, uzun süredir dokunmadığın konular. "Başla"ya bas, ilgili araç doğru
+  ayarlarla açılsın.
 - **Günlük:** çalışma süren kendiliğinden tutulur. Günlük serini, haftalık ve aylık grafiklerini görürsün.
+- **Seviye ve başarılar:** çalıştıkça XP kazanır, seviye atlarsın. Her gün üç küçük görev çıkar (ör. "15 dakika
+  çalış", "bir ritim ölçümü yap"); çalışmandan kendiliğinden tamamlanır. Seri, süre, akor hızı, ritim isabeti gibi
+  hedeflerde 25 rozet seni bekler.
 
 **Temel araçlar**
 - **Akort:** teli çal, notayı ve kaç cent saptığını gör. Standart akordun yanında Drop D, Drop C, yarım ve tam ton
@@ -44,6 +48,9 @@ yalnızca senin cihazında kalır.
 
 **Kendini dinle**
 - **Kayıt:** çalışmanı kaydet, haftalar sonra eski kaydınla yan yana dinle, ne kadar geliştiğini duy.
+- **Efektler:** gitarını overdrive, delay ve reverb ile kulaklıktan canlı dinle. Hazır sesler (temiz, crunch, solo,
+  ambiyans) ya da kendi kaydettiğin ses; gecikme göstergesi ve ıslık (geri besleme) koruması var. Hoparlörle
+  değil, kulaklıkla kullan.
 
 Uygulama Türkçe ve İngilizce kullanılabilir (*Ayarlar → Dil*). Uygulamadaki hazır egzersizler, çalışma şarkıları
 ve riff'ler bu uygulama için yazıldı.

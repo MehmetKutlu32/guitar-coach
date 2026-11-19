@@ -183,6 +183,13 @@ export function inputNode(): AudioNode | null {
   return source;
 }
 
+/** Giriş izinin bildirdiği gecikme (saniye); tarayıcı bildirmiyorsa ya da giriş kapalıysa null. */
+export function inputLatency(): number | null {
+  const track = stream?.getAudioTracks()[0];
+  const latency = (track?.getSettings() as (MediaTrackSettings & { latency?: number }) | undefined)?.latency;
+  return typeof latency === 'number' && Number.isFinite(latency) ? latency : null;
+}
+
 export function onAnalysis(listener: Listener): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
