@@ -5,19 +5,30 @@ import { t, type Key } from '../../i18n';
 import { href, navigate } from '../../router';
 import { Card, Notice, Segmented } from '../../ui/controls';
 import { Icon } from '../../ui/Icon';
+import { isEarResult } from '../../music/ear';
+import { isGameResult } from '../../music/fretboard';
+import { parseChordPro } from '../../music/chordpro';
+import { isTab } from '../../music/tab';
 import { backingStore } from '../backing/Backing';
 import { chordsStore } from '../chords/Chords';
-import { isTransitionResult, type TransitionResult } from '../chords/transitions';
-import { dayKey, isSessionRecord, type SessionRecord } from '../log/stats';
+import { isTransitionResult } from '../chords/transitions';
+import { earStore } from '../ear/Ear';
+import { dayKey, isSessionRecord } from '../log/stats';
 import { metroStore } from '../metronome/Metronome';
-import { isRhythmResult, type RhythmResult } from '../rhythm/analysis';
+import { isRhythmResult } from '../rhythm/analysis';
 import { rhythmStore } from '../rhythm/Rhythm';
+import { BUILTIN_SONGS, isSongRecord } from '../songs/builtin';
+import { openSongAt } from '../songs/Songs';
+import { BUILTIN_TABS } from '../tabs/builtin';
+import { tabsStore } from '../tabs/Tabs';
+import { theoryStore } from '../theory/Theory';
 import {
   autoDone,
   DEFAULT_PROFILE,
   generatePlan,
   QUESTIONS,
   scoreProfile,
+  type PlanInput,
   type PlanItem,
   type PlanMinutes,
   type PlanSetup,
@@ -42,7 +53,39 @@ export const planStore = persistent<PlanState>('plan', {
   done: [],
 });
 
-const text = (x: Text) => t(x.key, x.params);
+const text = (x: Text) => {
+  const refs = Object.fromEntries(Object.entries(x.refs ?? {}).map(([k, key]) => [k, t(key)]));
+  return t(x.key, { ...x.params, ...refs });
+};
+
+type PlanData = Omit<PlanInput, 'profile' | 'minutes' | 'today'>;
+
+/** Planın dayandığı tüm kayıtları okur: sonuçlar, oturumlar, şarkılar ve tablar (hazırlar dahil). */
+async function loadPlanData(): Promise<PlanData> {
+  const [tr, rh, se, ear, game, songs, tabs] = await Promise.all([
+    dbAll('results', 'transition'),
+    dbAll('results', 'rhythm'),
+    dbAll('sessions'),
+    dbAll('results', 'ear'),
+    dbAll('results', 'fretgame'),
+    dbAll('items', 'song'),
+    dbAll('items', 'tab'),
+  ]);
+  const songList = [...BUILTIN_SONGS, ...(songs as unknown[]).filter(isSongRecord)].map((r) => {
+    const song = parseChordPro(r.text);
+    return { id: r.id, name: song.title.trim() || t('songs.untitled'), bpm: song.tempo ?? r.bpm };
+  });
+  const tabList = [...BUILTIN_TABS, ...(tabs as unknown[]).filter(isTab)].map((tab) => ({ id: tab.id, name: tab.name, bpm: tab.bpm }));
+  return {
+    transitions: (tr as unknown[]).filter(isTransitionResult),
+    rhythm: (rh as unknown[]).filter(isRhythmResult),
+    sessions: (se as unknown[]).filter(isSessionRecord),
+    ear: (ear as unknown[]).filter(isEarResult),
+    fretgame: (game as unknown[]).filter(isGameResult),
+    songs: songList,
+    tabs: tabList,
+  };
+}
 
 /** Plan maddesinin ayarlarını ilgili araca uygular ve o ekrana gider. */
 export function startItem(setup: PlanSetup): void {
@@ -65,6 +108,27 @@ export function startItem(setup: PlanSetup): void {
     case 'backing':
       backingStore.update({ progressionId: setup.progressionId, key: setup.key, bpm: setup.bpm, style: setup.style });
       navigate('backing');
+      break;
+    case 'ear':
+      earStore.update(
+        setup.earKind === 'interval' ? { kind: 'interval', intervalLevel: setup.level } : { kind: 'chord', chordLevel: setup.level },
+      );
+      navigate('ear');
+      break;
+    case 'fretgame':
+      theoryStore.update({ view: 'game', gameMode: setup.mode, gameMaxFret: setup.maxFret, gameNaturals: setup.naturals });
+      navigate('theory');
+      break;
+    case 'scale':
+      theoryStore.update({ view: 'scales', root: setup.root, scale: setup.scale });
+      navigate('theory');
+      break;
+    case 'song':
+      void openSongAt(setup.id, setup.bpm);
+      break;
+    case 'tab':
+      tabsStore.update({ speed: setup.speed });
+      navigate('tabs', setup.id);
       break;
   }
 }
@@ -161,19 +225,12 @@ function PlanRow(props: { item: PlanItem; done: boolean; auto: boolean; onToggle
 /** Ana sayfadaki "Bugünün planı" kartı (ya da test yapılmadıysa karşılama kartı). */
 export function TodayPlan() {
   const s = planStore.state.value;
-  const [data, setData] = useState<{ transitions: TransitionResult[]; rhythm: RhythmResult[]; sessions: SessionRecord[] } | null>(
-    null,
-  );
+  const [data, setData] = useState<PlanData | null>(null);
 
   useEffect(() => {
     let alive = true;
-    void Promise.all([dbAll('results', 'transition'), dbAll('results', 'rhythm'), dbAll('sessions')]).then(([tr, rh, se]) => {
-      if (!alive) return;
-      setData({
-        transitions: (tr as unknown[]).filter(isTransitionResult),
-        rhythm: (rh as unknown[]).filter(isRhythmResult),
-        sessions: (se as unknown[]).filter(isSessionRecord),
-      });
+    void loadPlanData().then((d) => {
+      if (alive) setData(d);
     });
     return () => {
       alive = false;

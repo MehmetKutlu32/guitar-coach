@@ -10,6 +10,42 @@ export const FAKE_MIC_FREQ = 110;
 /** Uygulamanın yayınlandığı alt dizin (vite.config.ts ile aynı kaynak). */
 export const BASE_PATH = process.env.BASE_PATH ?? '/guitar-coach/';
 
+/**
+ * Tarihe bağlı testlerin (günlük, plan) "şimdi"si: gerçek saatten bağımsız, sabit bir an — 18 Kasım 2026
+ * (yerel saat). Testlerin beklentileri bu güne göredir (plandaki günlük dönüşümler). Saat E2E_TIME ile
+ * değiştirilebilir, ör. `E2E_TIME=23:59:30` (gece yarısına 30 sn kala); varsayılan 12:00.
+ */
+export const TEST_NOW: number = (() => {
+  const [h = 12, m = 0, s = 0] = (process.env.E2E_TIME ?? '12:00').split(':').map(Number);
+  return new Date(2026, 10, 18, h, m, s).getTime();
+})();
+
+/**
+ * Testin sahte saatte başlayacağı an: TEST_NOW, ama testin kullanacağı süre (`budgetMs`: kendiliğinden akan zaman
+ * + `fastForward`/`runFor` ile ileri sarmalar) gece yarısını geçecekse o kadar geri çekilir. Böylece testin
+ * "bugün"ü test boyunca değişmez.
+ */
+export function clockStart(budgetMs: number, now: number = TEST_NOW): number {
+  const d = new Date(now);
+  const nextMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+  return Math.min(now, nextMidnight - budgetMs);
+}
+
+/** Sayfanın saatini sabit bir andan başlatır (sayfayı açmadan önce çağır). Başlangıç anını döndürür. */
+export async function installFixedClock(page: Page, budgetMs = 10 * 60_000): Promise<number> {
+  const start = clockStart(budgetMs);
+  await page.clock.install({ time: start });
+  return start;
+}
+
+/** Bir anın yerel gün anahtarı (YYYY-AA-GG), `offsetDays` gün kaydırılmış. */
+export function localDayKey(time: number, offsetDays = 0): string {
+  const d = new Date(time);
+  d.setDate(d.getDate() + offsetDays);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /** Chromium'un sahte mikrofonu için 16 bit mono WAV yazar (harmonikli, tam periyotlu ton). */
 export function writeFakeMicWav(): void {
   const sampleRate = 48000;

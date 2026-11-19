@@ -3,25 +3,42 @@ import { pairKey, type TransitionResult } from '../../src/features/chords/transi
 import type { SessionRecord } from '../../src/features/log/stats';
 import {
   autoDone,
+  chooseEar,
+  chooseExtras,
   choosePairs,
+  chooseRepertoire,
   chooseRhythm,
+  chooseTheory,
   dayIndex,
+  daysSinceExtra,
   DEFAULT_PROFILE,
+  GAME_STEPS,
   generatePlan,
   isProfile,
   pairPool,
+  PIECE_LEVEL,
   QUESTIONS,
   recentSeconds,
   scoreProfile,
+  STALE_CAP,
   targetRate,
+  type Piece,
   type PlanInput,
+  type PlanItem,
   type PlanMinutes,
   type Profile,
+  type Text,
 } from '../../src/features/plan/generator';
 import type { RhythmResult } from '../../src/features/rhythm/analysis';
+import { BUILTIN_SONGS } from '../../src/features/songs/builtin';
+import { BUILTIN_TABS } from '../../src/features/tabs/builtin';
 import { dictionaries } from '../../src/i18n';
+import { parseChordPro } from '../../src/music/chordpro';
 import { primaryShape } from '../../src/music/chords';
+import { earLevels, type EarKind, type EarResult } from '../../src/music/ear';
+import type { GameMode, GameResult } from '../../src/music/fretboard';
 import { TEMPLATES } from '../../src/music/progressions';
+import { SCALES } from '../../src/music/scales';
 import { PRESET_PATTERNS } from '../../src/features/metronome/patterns';
 
 const TODAY = '2026-11-15';
@@ -68,6 +85,37 @@ const session = (day: number, activities: Record<string, number>): SessionRecord
   activities,
 });
 
+const earResult = (kind: EarKind, level: number, correct: number, day: number, items: Record<string, [number, number]> = {}): EarResult => ({
+  id: `e${kind}${level}${day}${correct}`,
+  type: 'ear',
+  date: at(day),
+  kind,
+  level,
+  correct,
+  total: 10,
+  seconds: 60,
+  items,
+});
+
+const game = (correct: number, day: number, mode: GameMode = 'name', maxFret = 5, naturalsOnly = true): GameResult => ({
+  id: `g${day}${correct}${mode}${maxFret}${naturalsOnly}`,
+  type: 'fretgame',
+  date: at(day),
+  mode,
+  maxFret,
+  naturalsOnly,
+  correct,
+  total: 10,
+  seconds: 50,
+});
+
+/** Uygulamanın plana verdiği hazır parçalarla aynı liste. */
+const SONGS: Piece[] = BUILTIN_SONGS.map((r) => {
+  const song = parseChordPro(r.text);
+  return { id: r.id, name: song.title, bpm: song.tempo ?? r.bpm };
+});
+const TABS: Piece[] = BUILTIN_TABS.map((tab) => ({ id: tab.id, name: tab.name, bpm: tab.bpm }));
+
 const input = (p: Partial<PlanInput> = {}): PlanInput => ({
   profile: profile(),
   minutes: 30,
@@ -75,8 +123,17 @@ const input = (p: Partial<PlanInput> = {}): PlanInput => ({
   transitions: [],
   rhythm: [],
   sessions: [],
+  ear: [],
+  fretgame: [],
+  songs: SONGS,
+  tabs: TABS,
   ...p,
 });
+
+/** Gün sırası çift / tek olan iki gün (günden güne dönen seçimler için). */
+const [EVEN_DAY, ODD_DAY] = dayIndex('2026-11-16') % 2 === 0 ? ['2026-11-16', '2026-11-17'] : ['2026-11-17', '2026-11-16'];
+
+const kinds = (items: PlanItem[]) => items.map((it) => it.setup.kind);
 
 describe('seviye testi', () => {
   it('yanıtlardan seviye ve beceri profili çıkar', () => {
@@ -116,6 +173,13 @@ describe('plan: süre ve yapı', () => {
       {},
       { transitions: [tx('Em', 'G', 12, 10), tx('Am', 'C', 40, 12)], rhythm: [rh(55, 90, 'div:2', 13)] },
       { sessions: [session(14, { chords: 900 }), session(13, { rhythm: 300 })] },
+      {
+        ear: [earResult('interval', 1, 9, 12), earResult('chord', 1, 4, 13, { min: [5, 2] })],
+        fretgame: [game(10, 13), game(9, 14, 'find')],
+        sessions: [session(14, { song: 600, tab: 300, ear: 200, theory: 100 })],
+      },
+      // Hiç parça yokken şarkı/tab maddesinin dakikası eşliğe geçer.
+      { songs: [], tabs: [] },
     ];
     for (const minutes of [15, 30, 45] as PlanMinutes[]) {
       for (const level of [0, 1, 2] as const) {
@@ -133,20 +197,39 @@ describe('plan: süre ve yapı', () => {
     }
   });
 
-  it('süre uzadıkça madde sayısı artar; akort hep ilk madde', () => {
+  it('süre uzadıkça madde sayısı artar; akort hep ilk madde; ek konular 1 / 2 / 3', () => {
     const count = (m: PlanMinutes) => generatePlan(input({ minutes: m })).length;
-    expect(count(15)).toBe(4);
-    expect(count(30)).toBe(5);
-    expect(count(45)).toBe(6);
+    expect(count(15)).toBe(5);
+    expect(count(30)).toBe(7);
+    expect(count(45)).toBe(9);
     for (const m of [15, 30, 45] as PlanMinutes[]) expect(generatePlan(input({ minutes: m }))[0].setup.kind).toBe('tune');
-    expect(generatePlan(input({ minutes: 45 })).map((it) => it.setup.kind)).toEqual([
+    // 45 dakikada üç ek konunun hepsi var; gösterim sırası sabit (gam/oyun eşlikten önce, şarkı/tab ve kulak sonra).
+    const repertoire = chooseRepertoire(input())!.kind;
+    expect(kinds(generatePlan(input({ minutes: 45 })))).toEqual([
       'tune',
       'transition',
       'transition',
       'rhythm',
       'pattern',
+      'fretgame',
       'backing',
+      repertoire,
+      'ear',
     ]);
+    // 15 dakikada yalnızca en öncelikli ek konu.
+    const first = chooseExtras(input())[0];
+    const extraKinds = { ear: ['ear'], theory: ['fretgame', 'scale'], repertoire: ['song', 'tab'] }[first];
+    expect(kinds(generatePlan(input({ minutes: 15 }))).filter((k) => !['tune', 'transition', 'rhythm', 'backing'].includes(k))).toSatisfy(
+      (rest: string[]) => rest.length === 1 && extraKinds.includes(rest[0]),
+    );
+  });
+
+  it('hiç parça yoksa şarkı/tab maddesi çıkmaz, dakikası eşliğe eklenir', () => {
+    const p = profile({ goal: 'chords' });
+    expect(chooseExtras(input({ profile: p }))[0]).toBe('repertoire');
+    const items = generatePlan(input({ profile: p, minutes: 15, songs: [], tabs: [] }));
+    expect(kinds(items)).toEqual(['tune', 'transition', 'rhythm', 'backing']);
+    expect(items.find((it) => it.setup.kind === 'backing')!.minutes).toBe(3 + 3);
   });
 
   it('aynı girdi aynı planı verir; eşlik günden güne değişir', () => {
@@ -159,6 +242,61 @@ describe('plan: süre ve yapı', () => {
   });
 
   it('plandaki her madde gerçekten var olan içeriğe işaret eder', () => {
+    const textOk = (x: Text) => {
+      for (const lang of ['tr', 'en'] as const) {
+        expect(dictionaries[lang][x.key], x.key).toBeTruthy();
+        for (const ref of Object.values(x.refs ?? {})) expect(dictionaries[lang][ref], ref).toBeTruthy();
+        // Tüm yer tutucular doldurulmuş.
+        const names = [...dictionaries[lang][x.key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+        for (const n of names) expect({ ...x.params, ...x.refs }, `${x.key} {${n}}`).toHaveProperty(n);
+      }
+    };
+    // Kulak ve oyun sonuçlarıyla zengin geçmiş: zayıf aralık, ilerlemiş oyun basamakları, gam önerisi.
+    const rich: Partial<PlanInput> = {
+      ear: [
+        earResult('interval', 1, 9, 20, { '4': [5, 5], '7': [5, 4] }),
+        earResult('interval', 2, 6, 21, { '3': [4, 1], '5': [6, 5] }),
+        earResult('chord', 1, 8, 22, { maj: [5, 5], min: [5, 3] }),
+      ],
+      fretgame: [game(10, 20), game(10, 21, 'find'), game(9, 22, 'name', 12)],
+    };
+    for (const level of [0, 1, 2] as const) {
+      for (const goal of ['chords', 'lead', 'riffs', 'all'] as const) {
+        for (const history of [{}, rich]) {
+          for (let d = 1; d <= 28; d++) {
+            const today = `2026-11-${String(d).padStart(2, '0')}`;
+            const items = generatePlan(input({ minutes: 45, today, profile: profile({ level, open: level, barre: level, goal }), ...history }));
+            for (const it of items) {
+              textOk(it.title);
+              textOk(it.reason);
+              const s = it.setup;
+              if (s.kind === 'ear') {
+                expect(s.level).toBeGreaterThanOrEqual(1);
+                expect(s.level).toBeLessThanOrEqual(earLevels(s.earKind).length);
+              } else if (s.kind === 'fretgame') {
+                expect([5, 12]).toContain(s.maxFret);
+                expect(['name', 'find']).toContain(s.mode);
+              } else if (s.kind === 'scale') {
+                expect(SCALES[s.scale], s.scale).toBeDefined();
+                // Gam, aynı plandaki eşliğin tonunda.
+                const jam = items.find((x) => x.setup.kind === 'backing')!.setup;
+                expect(jam.kind === 'backing' && jam.key).toBe(s.root);
+              } else if (s.kind === 'song') {
+                expect(BUILTIN_SONGS.some((x) => x.id === s.id), s.id).toBe(true);
+                expect(PIECE_LEVEL[s.id]).toBeLessThanOrEqual(level);
+              } else if (s.kind === 'tab') {
+                expect(BUILTIN_TABS.some((x) => x.id === s.id), s.id).toBe(true);
+                expect(PIECE_LEVEL[s.id]).toBeLessThanOrEqual(level);
+                expect([50, 75, 100]).toContain(s.speed);
+              }
+            }
+          }
+        }
+      }
+    }
+    // Zorluk tablosundaki her hazır parça gerçekten var; her hazır parçanın zorluğu tanımlı.
+    for (const id of Object.keys(PIECE_LEVEL)) expect([...BUILTIN_SONGS, ...BUILTIN_TABS].some((x) => x.id === id), id).toBe(true);
+    for (const x of [...BUILTIN_SONGS, ...BUILTIN_TABS]) expect(PIECE_LEVEL[x.id], x.id).toBeDefined();
     for (const level of [0, 1, 2] as const) {
       for (let d = 1; d <= 28; d++) {
         const today = `2026-11-${String(d).padStart(2, '0')}`;
@@ -286,7 +424,7 @@ describe('plan: ihmal edilen konu ve hedef', () => {
     const items = generatePlan(input({ sessions }));
     const backing = items.find((it) => it.setup.kind === 'backing')!;
     expect(backing.reason.key).toBe('plan.why.neglected');
-    expect(backing.minutes).toBe(10);
+    expect(backing.minutes).toBe(7);
     expect(items[0].minutes).toBe(1);
   });
 
@@ -301,9 +439,208 @@ describe('plan: ihmal edilen konu ve hedef', () => {
       const items = generatePlan(input({ profile: profile({ goal }) }));
       return [items.find((it) => it.setup.kind === 'transition')!.minutes, items.find((it) => it.setup.kind === 'backing')!.minutes];
     };
-    expect(mins('all')).toEqual([6, 9]);
-    expect(mins('lead')).toEqual([4, 11]);
-    expect(mins('chords')).toEqual([8, 7]);
+    expect(mins('all')).toEqual([5, 6]);
+    expect(mins('lead')).toEqual([3, 8]);
+    expect(mins('chords')).toEqual([7, 4]);
+  });
+});
+
+describe('plan: ek konuların seçimi', () => {
+  it('geçmiş yokken hedefe göre sıra; "hepsi" hedefinde sıra günden güne döner', () => {
+    const order = (goal: Profile['goal'], today = TODAY) => chooseExtras(input({ profile: profile({ goal }), today }));
+    expect(order('chords')).toEqual(['repertoire', 'ear', 'theory']);
+    expect(order('lead')).toEqual(['theory', 'ear', 'repertoire']);
+    expect(order('riffs')).toEqual(['repertoire', 'theory', 'ear']);
+    const firsts = new Set(['2026-11-15', '2026-11-16', '2026-11-17'].map((d) => order('all', d)[0]));
+    expect(firsts.size).toBe(3);
+  });
+
+  it('uzun süredir çalışılmayan konu hedefin önceliğini geçer', () => {
+    // Akor hedefli, şarkıyı dün çalmış; kulak ve sap hiç çalışılmamış.
+    const sessions = [session(14, { song: 900 })];
+    expect(daysSinceExtra(input({ sessions }), 'repertoire')).toBe(1);
+    expect(daysSinceExtra(input({ sessions }), 'ear')).toBeNull();
+    expect(chooseExtras(input({ profile: profile({ goal: 'chords' }), sessions }))).toEqual(['ear', 'theory', 'repertoire']);
+    // Kulak sonucu da "çalışıldı" sayılır.
+    const ear = [earResult('interval', 1, 9, 12)];
+    expect(daysSinceExtra(input({ ear }), 'ear')).toBe(3);
+    // Hepsi yakın zamanda çalışıldıysa hedef sırası geçerli.
+    const all = [session(14, { song: 300, ear: 300, theory: 300 })];
+    expect(chooseExtras(input({ profile: profile({ goal: 'chords' }), sessions: all }))).toEqual(['repertoire', 'ear', 'theory']);
+    // Çok eski çalışma da en fazla STALE_CAP gün sayılır.
+    expect(daysSinceExtra(input({ sessions: [session(1, { tab: 60 })] }), 'repertoire')).toBe(14);
+    expect(STALE_CAP).toBe(14);
+  });
+
+  it('bugünün kayıtları seçimi değiştirmez: plan gün içinde sabit kalır', () => {
+    const before = input({ minutes: 45, profile: profile({ goal: 'chords' }) });
+    const after = input({
+      minutes: 45,
+      profile: profile({ goal: 'chords' }),
+      ear: [earResult('chord', 1, 10, 15, { maj: [5, 5], min: [5, 5] })],
+      fretgame: [game(10, 15)],
+      sessions: [session(15, { song: 900, ear: 300, theory: 300 })],
+    });
+    expect(generatePlan(after).map((it) => it.id)).toEqual(generatePlan(before).map((it) => it.id));
+  });
+});
+
+describe('plan: kulak eğitimi', () => {
+  it('geçmiş yokken 1. seviye; tür hedefe göre, "hepsi"nde günden güne', () => {
+    expect(chooseEar(input({ profile: profile({ goal: 'chords' }) }))).toEqual({ kind: 'chord', level: 1, reason: { key: 'plan.why.earFirst' } });
+    expect(chooseEar(input({ profile: profile({ goal: 'lead' }) })).kind).toBe('interval');
+    expect(chooseEar(input({ today: EVEN_DAY })).kind).toBe('interval');
+    expect(chooseEar(input({ today: ODD_DAY })).kind).toBe('chord');
+  });
+
+  it('iki türden açık seviyesi düşük olan seçilir; en zayıf soru türü nedene yazılır', () => {
+    // Aralıklarda 1 ve 2 geçilmiş (3 açık), akorlarda 1. seviye geçilmemiş.
+    const ear = [
+      earResult('interval', 1, 9, 10),
+      earResult('interval', 2, 8, 11),
+      earResult('chord', 1, 6, 12, { maj: [5, 4], min: [5, 2] }),
+    ];
+    const c = chooseEar(input({ ear }));
+    expect(c.kind).toBe('chord');
+    expect(c.level).toBe(1);
+    expect(c.reason).toEqual({ key: 'plan.why.earWeak', params: { n: 40 }, refs: { name: 'ear.chord.min' } });
+    const item = generatePlan(input({ ear, minutes: 45 })).find((it) => it.setup.kind === 'ear')!;
+    expect(item.id).toBe('ear:chord:1');
+    expect(item.title).toEqual({ key: 'plan.item.earChord', params: { level: 1 } });
+    expect(item.setup).toEqual({ kind: 'ear', earKind: 'chord', level: 1 });
+  });
+
+  it('aralıkta zayıf olan: seviyedeki türlerden, en az 3 kez sorulmuş ve %80 altı', () => {
+    const ear = [
+      earResult('chord', 1, 9, 10),
+      earResult('chord', 2, 9, 11),
+      // 3. seviyede değil (1 = küçük ikili): sayılmaz. 4 (büyük üçlü) yalnızca 2 kez sorulmuş: sayılmaz.
+      earResult('interval', 1, 7, 12, { '4': [2, 0], '7': [4, 3], '12': [4, 4] }),
+    ];
+    expect(chooseEar(input({ ear }))).toMatchObject({
+      kind: 'interval',
+      level: 1,
+      reason: { key: 'plan.why.earWeak', params: { n: 75 }, refs: { name: 'interval.7' } },
+    });
+    // Zayıf tür yoksa seviye geçme ölçütü yazılır.
+    const ok = [earResult('chord', 1, 9, 10), earResult('interval', 1, 7, 12, { '7': [4, 4] })];
+    expect(chooseEar(input({ ear: ok })).reason).toEqual({ key: 'plan.why.earLevel', params: { need: 8, total: 10 } });
+  });
+
+  it('son seviye geçildiyse "koru" der', () => {
+    const levels = earLevels('interval').length;
+    const ear = [...Array.from({ length: levels }, (_, i) => earResult('interval', i + 1, 10, 5 + i)), ...Array.from({ length: levels }, (_, i) => earResult('chord', i + 1, 10, 5 + i))];
+    expect(chooseEar(input({ ear, profile: profile({ goal: 'lead' }) }))).toEqual({
+      kind: 'interval',
+      level: levels,
+      reason: { key: 'plan.why.earTop' },
+    });
+  });
+});
+
+describe('plan: sap ve teori', () => {
+  const jam = { key: 9, scale: 'minorPent' as const };
+
+  it('hiç oynanmadıysa nota oyunu; ilk basamak seviyeye göre', () => {
+    expect(chooseTheory(input(), jam)).toEqual({ kind: 'fretgame', step: GAME_STEPS[0], reason: { key: 'plan.why.gameFirst' } });
+    expect(chooseTheory(input({ profile: profile({ level: 2 }) }), jam)).toMatchObject({ step: { mode: 'name', maxFret: 12, naturals: true } });
+  });
+
+  it('puan düşükse oyun, oturmuş basamak atlanır', () => {
+    // Son üç tur ortalaması %70.
+    const low = [game(6, 12), game(7, 13), game(8, 14)];
+    expect(chooseTheory(input({ fretgame: low }), jam)).toEqual({
+      kind: 'fretgame',
+      step: GAME_STEPS[0],
+      reason: { key: 'plan.why.gameLow', params: { n: 70, target: 80 } },
+    });
+    // 1. basamak %90 ile oturmuş; "perdeyi bul"da düşük → 2. basamak.
+    const mixed = [game(9, 12), game(6, 13, 'find'), game(6, 14, 'find')];
+    expect(chooseTheory(input({ fretgame: mixed }), jam)).toMatchObject({ kind: 'fretgame', step: GAME_STEPS[1] });
+  });
+
+  it('puan iyi ve yakın zamanda oynandıysa eşliğin tonunda gam; uzun süredir oynanmadıysa yine oyun', () => {
+    const good = [game(9, 12), game(10, 14, 'find')];
+    expect(chooseTheory(input({ fretgame: good }), jam)).toEqual({
+      kind: 'scale',
+      root: 9,
+      scale: 'minorPent',
+      reason: { key: 'plan.why.scale', params: { key: 'A' } },
+    });
+    const old = [game(9, 3), game(10, 4, 'find')];
+    expect(chooseTheory(input({ fretgame: old }), jam)).toEqual({
+      kind: 'fretgame',
+      step: GAME_STEPS[2],
+      reason: { key: 'plan.why.gameStale', params: { days: 11 } },
+    });
+    // Planda gam maddesi: başlık gamın adını çevrilecek anahtarla taşır; ayar eşlikle aynı ton.
+    const items = generatePlan(input({ fretgame: good, minutes: 45 }));
+    const scale = items.find((it) => it.setup.kind === 'scale')!;
+    const backing = items.find((it) => it.setup.kind === 'backing')!;
+    expect(backing.setup.kind === 'backing' && backing.setup.key).toBe(scale.setup.kind === 'scale' && scale.setup.root);
+    expect(scale.title.refs?.scale).toMatch(/^scale\./);
+  });
+});
+
+describe('plan: şarkı ve tab', () => {
+  it('yeni başlayana yalnızca kolay parçalar, yavaşlatılmış', () => {
+    for (let d = 1; d <= 30; d++) {
+      const today = `2026-11-${String(d).padStart(2, '0')}`;
+      const r = chooseRepertoire(input({ today }))!;
+      expect(PIECE_LEVEL[r.piece.id]).toBe(0);
+      if (r.kind === 'song') {
+        expect(r.piece.id).toBe('builtin:dort-akor');
+        expect(r.bpm).toBe(63); // 84 × %75
+        expect(r.percent).toBe(75);
+      } else {
+        expect(r.speed).toBe(50);
+      }
+    }
+    // Orta seviyede özgün tempo / tam hız.
+    for (let d = 1; d <= 6; d++) {
+      const r = chooseRepertoire(input({ profile: profile({ level: 2, goal: 'riffs' }), today: `2026-11-0${d}` }))!;
+      if (r.kind === 'tab') expect(r.speed).toBe(100);
+      else expect([r.percent, r.bpm]).toEqual([100, r.piece.bpm]);
+    }
+  });
+
+  it('hedefe göre şarkı/tab oranı; parça günden güne döner; kullanıcının parçaları da girer', () => {
+    const days = Array.from({ length: 30 }, (_, i) => `2026-12-${String(i + 1).padStart(2, '0')}`);
+    const count = (goal: Profile['goal'], kind: string) =>
+      days.filter((today) => chooseRepertoire(input({ today, profile: profile({ level: 2, goal }) }))!.kind === kind).length;
+    expect(count('chords', 'song')).toBe(20);
+    expect(count('riffs', 'tab')).toBe(20);
+    expect(count('all', 'song')).toBe(15);
+    // Bütün hazır parçalar sırayla gelir.
+    const seen = new Set(days.map((today) => chooseRepertoire(input({ today, profile: profile({ level: 2 }) }))!.piece.id));
+    expect(seen.size).toBe(SONGS.length + TABS.length);
+    // Kullanıcının kendi şarkısı (zorluk tablosunda yok) yeni başlayana da önerilir.
+    const mine: Piece = { id: 'user-1', name: 'Benim şarkım', bpm: 120 };
+    const seenMine = days.some((today) => chooseRepertoire(input({ today, songs: [...SONGS, mine] }))!.piece.id === 'user-1');
+    expect(seenMine).toBe(true);
+    // Şarkı yoksa tab'a düşer.
+    expect(chooseRepertoire(input({ songs: [], profile: profile({ goal: 'chords' }) }))!.kind).toBe('tab');
+    expect(chooseRepertoire(input({ songs: [], tabs: [] }))).toBeNull();
+  });
+
+  it('plan maddesi: başlık, neden ve "Başla" ayarı', () => {
+    const items = generatePlan(input({ minutes: 45, profile: profile({ level: 1, goal: 'chords' }), today: EVEN_DAY }));
+    const it = items.find((x) => x.setup.kind === 'song' || x.setup.kind === 'tab')!;
+    const s = it.setup;
+    if (s.kind === 'song') {
+      expect(it.title.key).toBe('plan.item.song');
+      expect(it.reason).toEqual({ key: 'plan.why.songSlow', params: { n: 90 } });
+      expect(it.id).toBe(`song:${s.id}`);
+    } else {
+      expect(s.kind === 'tab' && s.speed).toBe(75);
+      expect(it.reason.key).toBe('plan.why.tabSlow');
+    }
+    // "Riff" hedefinde üç günün ikisi tab: ilk üç günden birinde mutlaka var.
+    const full = ['2026-11-01', '2026-11-02', '2026-11-03']
+      .map((today) => generatePlan(input({ minutes: 45, profile: profile({ level: 2, goal: 'riffs' }), today })).find((x) => x.setup.kind === 'tab'))
+      .find(Boolean)!;
+    expect(full.reason.key).toBe('plan.why.tab');
+    expect(full.title).toMatchObject({ key: 'plan.item.tab', params: { n: 100 } });
   });
 });
 
@@ -321,5 +658,27 @@ describe('plan: kendiliğinden tamamlanan maddeler', () => {
     ]);
     // Başka bir çiftin sonucu bu maddeyi tamamlamaz.
     expect(autoDone(items, { today: TODAY, transitions: [tx('D', 'A', 10, 15)], rhythm: [] })).toEqual([]);
+  });
+
+  it('bugünkü kulak ve nota oyunu sonuçları; gam, şarkı ve tab için bugünkü oturum süresi', () => {
+    const base = { today: TODAY, transitions: [], rhythm: [] };
+    const ear: PlanItem = { id: 'ear:chord:1', minutes: 4, title: { key: 'plan.item.earChord' }, reason: { key: 'plan.why.earFirst' }, setup: { kind: 'ear', earKind: 'chord', level: 1 } };
+    const fret: PlanItem = { ...ear, id: 'fretgame', setup: { kind: 'fretgame', mode: 'name', maxFret: 5, naturals: true } };
+    const scale: PlanItem = { ...ear, id: 'scale', setup: { kind: 'scale', root: 9, scale: 'minorPent' } };
+    const song: PlanItem = { ...ear, id: 'song', setup: { kind: 'song', id: 'builtin:dort-akor', bpm: 63 } };
+    const tab: PlanItem = { ...ear, id: 'tab', setup: { kind: 'tab', id: 'builtin:kromatik', speed: 50 } };
+    const items = [ear, fret, scale, song, tab];
+    expect(autoDone(items, base)).toEqual([]);
+    // Kulak: bugünkü, aynı türden tur. Dünkü ya da öbür tür saymaz.
+    expect(autoDone(items, { ...base, ear: [earResult('chord', 1, 3, 14), earResult('interval', 1, 9, 15)] })).toEqual([]);
+    expect(autoDone(items, { ...base, ear: [earResult('chord', 1, 3, 15)] })).toEqual(['ear:chord:1']);
+    // Nota oyunu: bugünkü herhangi bir tur (yarım puan da olsa çalışıldı).
+    expect(autoDone(items, { ...base, fretgame: [game(4, 15, 'find', 12)] })).toEqual(['fretgame']);
+    // Oturum süresi: 4 dakikalık maddenin en az yarısı (120 sn) bugün o araçta geçmeli.
+    expect(autoDone(items, { ...base, sessions: [session(15, { song: 100, tab: 119, theory: 60 })] })).toEqual([]);
+    expect(
+      autoDone(items, { ...base, sessions: [session(15, { song: 100, theory: 60 }), { ...session(15, { song: 30, tab: 120, theory: 60 }), id: 'x' }] }),
+    ).toEqual(['scale', 'song', 'tab']);
+    expect(autoDone(items, { ...base, sessions: [session(14, { song: 900, tab: 900, theory: 900 })] })).toEqual([]);
   });
 });
