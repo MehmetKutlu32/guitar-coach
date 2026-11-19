@@ -302,6 +302,14 @@
   bloklar arasında kaydırır, toplamı değiştirmez.
 - **"Tamamlandı" iki kaynaktan**: elle işaret (güne bağlı saklanır) ve bugün kaydedilmiş sonuçlar. Akort ve eşlik
   için güvenilir bir otomatik ölçüt yok; onlar elle işaretlenir.
+- **Ek konular (kulak, sap/teori, şarkı/tab) hedef önceliği + son çalışmadan bu yana gün puanıyla seçilir**
+  (2026-11-19). Seçimler bugünden önceki verilerle yapılır; böylece gün içinde bir madde tamamlanınca plan değişmez
+  (madde kaybolmaz). Bugünün verisi yalnızca kendiliğinden tamamlama için kullanılır.
+- **Gam, şarkı ve tab sonuç kaydı tutmaz**; bu maddeler, bugünkü oturumlarda o araçta geçen süre maddenin süresinin
+  yarısına ulaşınca tamamlanır. Ayrı bir "çalındı" kaydı eklemek yerine mevcut günlük verisi kullanıldı.
+- **Hazır şarkı ve tabların zorluğu plan üreticisinde (`PIECE_LEVEL`) tutulur**; kullanıcının kendi parçaları her
+  seviyeye önerilir (kendisi seçti). Yavaşlatma: şarkı %75 / %90 / %100, tab %50 / %75 / %100 (tab oynatıcısı
+  yalnızca bu üç hızı destekler).
 
 ## Pratik günlüğü
 
@@ -330,6 +338,11 @@
 - **Ekran görüntüleri karşılaştırma için değil, gözle kontrol için** alınır (`screenshots/`, git'e girmez). Yazı tipi
   farkları yüzünden Windows/Linux arasında piksel karşılaştırması kırılgan olurdu. Bunun yerine her ekranda yatay
   taşma ve 44 px altı dokunma hedefi otomatik denetlenir.
+- **Tarihe bağlı uçtan uca testler sabit sahte saatle çalışır** (`installFixedClock`, 18.11.2026 12:00). Gerçek
+  saatle 23:59'da başlayan çalıştırma kalıyordu. Plan beklentileri günden güne döndüğü için tarih sabit; yalnızca
+  saat (`E2E_TIME`) değiştirilebilir ve test gece yarısını geçecekse başlangıç geri çekilir.
+- **Test sunucusu portu `E2E_PORT` ile değiştirilebilir** (varsayılan 4173). Birden çok git worktree'de testler
+  aynı anda çalışabilsin diye (Aşama 15, 16 ve plan genişletmesi paralel geliştirildi).
 
 ## Yayınlama
 
@@ -341,3 +354,52 @@
 - **Commit mesajları İngilizce, ortak yazar satırı yok** (kullanıcı isteği, 2026-11-15). İlk altı commit Türkçe
   kaldı: yayınlanmış geçmişi yeniden yazmak zorla gönderme (force push) gerektirir, bu açıkça istenmeden yapılmadı.
 - **`gh` olmadan CI ve Pages durumu** GitHub'ın herkese açık API'sinden ve yayınlanan siteden okunur.
+
+## Oyunlaştırma
+
+- **Oyunlaştırma durumu saklanmaz, türetilir.** XP, seviye, rozet ve görev ilerlemesi kayıtlı veriden saf
+  fonksiyonlarla hesaplanır (kulak eğitimi seviyelerindeki gibi). JSON dışa/içe aktarmada ayrı bir durumun veriyle
+  çelişmesi imkânsız olur, geçmiş veri ilk açılışta doğru XP verir, kurallar değişince sonuç kendiliğinden
+  güncellenir. Saklanan tek şey hangi başarının bildirildiğidir (`kv.gamify`); kaybolursa en kötü ihtimalle
+  bildirim gösterilmez ya da bir kez daha gösterilir.
+- **XP eğrisi doğrusal artan adımlı:** L→L+1 = 100 + 50·(L−1). Günde ~30 dk çalışan biri ~100 XP/gün alır:
+  seviye 5 ~1 hafta, 10 ~1 ay, 20 ~3–4 ay. Erken seviyeler hızlı gelir, sonra yavaşlar ama hiç durmaz.
+- **Günlük görevler gün anahtarından deterministik.** `dayIndex(gün)` ile tohumlanan karıştırma: her cihazda ve saat
+  diliminde aynı gün aynı görevler, sunucu gerekmez. İlk görev hep süre görevi (alışkanlık), diğer ikisi farklı
+  ailelerden (aynı gün iki geçiş görevi çıkmaz).
+- **Kısa ritim ölçümleri "iyi ritim" sayılmaz** (16 hedef vuruştan az): %80/%95 rozetleri ve %75 görevi birkaç
+  vuruşla kazanılmasın.
+- **Bildirimler `pointer-events: none`.** Dokunmayı engellemez; kapatma düğmesi yok, 4,5 sn sonra kaybolur.
+- **Veri değişikliği `onDbWrite` ile izlenir** (`db.ts`'e küçük dinleyici). Her özelliğin "XP güncelle" çağırması
+  yerine tek noktadan, 200 ms gecikmeyle yeniden okuma yapılır.
+- **i18n öneki `gamify.`**: `game.*` sap oyununda zaten kullanılıyor.
+
+## Canlı efektler
+
+- **Efekt zinciri ana sınırlayıcıyı atlar.** `masterOut()`'taki DynamicsCompressor ileriye baktığı için 6 ms
+  (288 örnek) gecikme ekliyor; canlı dinlemede her milisaniye önemli olduğu için efektler `directOut()` ile doğrudan
+  çıkışa gider. Güvenlik için zincirin sonunda gecikmesiz bir WaveShaper yumuşak kırpıcı var: 0,8'e kadar birebir,
+  üstü tanh ile 1'e yaklaşır, +12 dB'e kadar karşılar.
+- **Delay bir AudioWorklet içinde.** Chromium'da döngüdeki yerleşik DelayNode her turda fazladan 128 örnek (2,7 ms)
+  ekliyor; ikinci yankı 502,7 ms'de çıktı. Geri beslemeli delay saf bir sınıf (`FeedbackDelay`) olarak yazıldı;
+  worklet ve birim testleri aynı kodu kullanır. Ayarlar AudioParam olarak verilir.
+- **Gürültü kapısı da worklet içinde.** Web Audio'da hazır kapı yok; analiz mesajlarıyla kazanç değiştirmek atağı
+  geç açardı.
+- **Overdrive: WaveShaper, 4× aşırı örnekleme.** Ölçülen gecikme 4 ms ('2x' ile 2,7 ms, 'none' ile 0); toplam yolun
+  küçük bir parçası, yoğun drive'da katlanma (aliasing) farkı daha belirgin. Bu gecikme, overdrive açıkken gecikme
+  göstergesine eklenir.
+- **Reverb dürtü yanıtı kodda üretilir**, dış ses dosyası yok. Gürültü zamanla koyulaşan süzgeçten geçirilir, sonra
+  blok blok T60 zarfına oturtulur; sönüm süresi süzgeçten bağımsız olarak tam ayarlanan değerdir. Tohumlu rastgele
+  üreteç: aynı ayar aynı yanıtı verir. `convolver.normalize = false` (enerji sabit).
+- **Kapalı efekt zincirden çıkarılır**, düğüm kazancıyla susturulmaz: kapalı efekt sese hiç dokunmaz. Bağlantılar
+  kısa bir sessizlik içinde yeniden kurulur (tıkırtı olmasın).
+- **Delay ve reverb'de kuru sinyal hep 1.** Pedallardaki gibi: karışım yalnızca ıslak sinyali ayarlar.
+- **Güvenlik varsayılanları.** Ses her açılışta kapalı başlar (kaydedilmez); ana ses %30, açılışta en fazla %50;
+  "Kulaklık kullan" uyarısı. Geri besleme koruması üç kurala bakar: kesintisiz kırpma 0,5 sn; tek frekansta 0,8 sn
+  içinde ≥ 9 dB düşmeden yükselen ton (geri besleme üstel büyür, gitar notası söner); 4 sn sönmeyen yüksek saf ton.
+  Tetiklenince ses kapanır ve nedeni yazılır; kullanıcı sesi yeniden açar.
+- **Gecikme göstergesi.** Ayarlar'da ölçülmüş gecikme varsa o; yoksa giriş izinin `latency`'si (yoksa
+  `baseLatency`) + `baseLatency` + `outputLatency`. Eşikler 12 ve 25 ms (10–15 ms fark edilmez, ~25 ms'den sonra
+  çalarken rahatsız eder).
+- **Hazır ses yalnızca drive/delay/reverb'ü kapsar.** Giriş kazancı, kapı eşiği ve ana ses cihaza ve ortama bağlı.
+  Kullanıcı sesleri `items` deposunda (`type: 'fxpreset'`) durduğu için dışa/içe aktarmaya kendiliğinden girer.

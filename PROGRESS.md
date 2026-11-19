@@ -1,6 +1,7 @@
 # İlerleme
 
-Son güncelleme: 2026-11-16 · Biten aşama: **14 / 16** (Katman 1, 2 ve 3 tamam) · Sıradaki: **Aşama 15 — Oyunlaştırma**
+Son güncelleme: 2026-11-19 · Biten aşama: **16 / 16** (tüm katmanlar tamam) · Sıradaki: gerçek gitarla deneme,
+yayın ve aşağıdaki "Bilinen eksikler"
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -22,16 +23,17 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 | 12 | Kulak eğitimi | ✅ bitti |
 | 13 | Kayıt ve karşılaştırma | ✅ bitti |
 | 14 | Kendi ses dosyasıyla çalışma | ✅ bitti |
-| 15 | Oyunlaştırma | ⏳ sırada |
-| 16 | Canlı efektler | — |
+| 15 | Oyunlaştırma | ✅ bitti |
+| 16 | Canlı efektler | ✅ bitti |
 
 ## Test sonuçları (son çalıştırma)
 
 | Paket | Sonuç |
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
-| Vitest (birim) | ✅ 218 / 218 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 116 / 116 |
+| Vitest (birim) | ✅ 322 / 322 |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 135 / 135 (+1 bilerek atlandı: çevrimdışı efekt ölçümü yalnızca masaüstünde) |
+| Tarihe bağlı testler 23:59:30'da (`E2E_TIME=23:59:30`, günlük + plan) | ✅ 14 / 14 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 
 ## Ölçülen doğruluk
@@ -130,6 +132,34 @@ WSOLA + yeniden örnekleme (`src/dsp/stretch.ts`), 44,1 kHz, üretilmiş sinyall
 Bu ölçümler tek sesli ve temiz sinyallerle yapıldı; gerçek, çok sesli ve davullu kayıtlarda kalite kulakla
 değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
 
+### Canlı efektler (Aşama 16)
+
+Birim testleri saf hesapla, uçtan uca ölçümler gerçek Web Audio zinciriyle (Chromium, OfflineAudioContext, 48 kHz)
+yapıldı.
+
+| Ölçüm | Sonuç |
+|-------|-------|
+| Tüm efektler kapalı: çıkış − giriş (dürtü / 220 Hz ton) | 0 / en fazla 2,4·10⁻⁷ (yalnızca kayan nokta yuvarlaması) |
+| Kapalı efektin ayarları sese sızar mı (aşırı ayarlı kapalı zincir ile varsayılan kapalı zincir) | fark 0 |
+| Delay 250 ms, tekrar %50: 1. ve 2. yankı | 250,00 ms (genlik 0,250 = beklenen) · 500,00 ms |
+| Tempoya bağlı delay, 120 BPM, 1/8. | 375,00 ms (beklenen 375) |
+| Delay birim testi (48 / 44,1 kHz, 4 yankı) | ilk iki yankı örneği örneğine; sonrakiler ±1 örnek |
+| Reverb T60 (birim, eğimden) — 0,5 / 1,6 / 4 s | 0,501 / 1,601 / 4,001 s (fark ≤ %0,13); −60 dB'e iniş 0,505 / 1,615 / 4,015 s |
+| Reverb T60, gerçek zincirde (ayar 2 s) | 2,0007 s |
+| Overdrive THD, 0,4 genlikli sinüs (drive 0/20/45/78/100) | %0,0 / 1,1 / 14,0 / 39,2 / 44,0; yalnızca tek harmonikler; çıkış tepe değeri ≤ 1 |
+| Overdrive, gerçek zincir (drive 60): 3. / 5. harmonik oranı · temiz zincirde 3. harmonik | 0,231 / 0,078 · 1·10⁻⁹ |
+| Seviye dengeleme: drive 20/45/78/100 çıkış seviyesi | −12,6 / −9,8 / −13,7 / −17,9 dBFS |
+| Zincirin eklediği gecikme: efektler kapalı / overdrive açık (4× aşırı örnekleme) | 0 örnek / 193 örnek ≈ 4,0 ms |
+| Karşılaştırma: DynamicsCompressor'ün gecikmesi | 288 örnek = 6 ms (efektler bu yüzden ana sınırlayıcıyı atlar) |
+| Karşılaştırma: döngüdeki yerleşik DelayNode'un her turda eklediği | 128 örnek (delay bu yüzden worklet içinde) |
+| Kapı (eşik −40 dB): −50 dBFS ton / 0 dBFS ton | RMS 0 / 0,212 (birebir geçer) |
+| Uçtan uca: 196 Hz giriş → çıkış perdesi (temiz / crunch / solo / ambiyans) | 195,9 / 196,2 / 196,1–196,2 / 195,0–195,9 Hz |
+| Uçtan uca: geri besleme döngüsü (çıkış → 30 ms → ×4 → giriş) | koruma "clip" ile ~820 ms'de sesi kapattı; çıkış RMS < 0,002 |
+| Geri besleme koruması, birim | saniyede 20 dB büyüyen ton 1,19 s'de yakalandı; sürekli kırpma 0,5–0,75 s; sabit yüksek ton 4 s. Yanlış alarm yok: 8 sn tel vuruşları, 10 sn orta seviye ton, distortion'lı 6 sn nota, gürültü, sessizlik |
+| Gecikme göstergesi (headless Chromium, bu makine) | 52–62 ms (giriş ≈10 + işleme 10 + çıkış 32–42 ms; tarayıcının bildirdiği) |
+
+Gerçek ses donanımıyla ölçülmedi; gecikme göstergesi değerleri başsız Chromium'un bildirdikleridir.
+
 ## Yapılanlar
 
 ### Aşama 1 — İskelet + akort aleti
@@ -201,7 +231,20 @@ değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
   süredir çalışılmayan; ritimde son üç ölçümün isabetine göre yavaşlat / pekiştir / zorlaştır ve erken–geç
   eğilimi; bu hafta hiç çalışılmayan konuya ek dakika; hedefe (akor / solo) göre dakika kaydırma; eşlik dizisi
   seviyeye göre ve günden güne değişir.
-- Maddeler elle işaretlenir; bugün kaydedilen geçiş ve ritim sonuçları maddeyi kendiliğinden tamamlar.
+- Ek konular (15 / 30 / 45 dk'da 1 / 2 / 3 madde; 2026-11-19'da eklendi): kulak eğitimi, sap ve teori, şarkı / tab.
+  Sıra = hedefe göre öncelik + son çalışmadan bu yana gün (en çok 14); konu ve içerik seçimi bugünden önceki
+  verilerle yapılır, plan gün içinde değişmez.
+  - Kulak eğitimi: iki türden açık seviyesi düşük olanı, o seviyede; nedeni en zayıf aralık / akor türü (en az 3 kez
+    sorulmuş, %80 altı).
+  - Sap ve teori: nota oyunu hiç oynanmadıysa, son üç tur ortalaması %80'in altındaysa ya da 7 gündür oynanmadıysa
+    oyun (sıradaki oturmamış ayar basamağında: 0–5 → 0–12 → tüm notalar); yoksa o günün eşliğinin tonunda, eşlikte
+    önerilen gam.
+  - Şarkı / tab: hedefe göre tür, parça günden güne döner (seviyeye uygun hazırlar + kullanıcının kendi parçaları);
+    şarkı %75 / %90 / %100 tempoda, tab %50 / %75 / %100 hızda.
+- Maddeler elle işaretlenir; bugün kaydedilen geçiş, ritim, kulak (aynı tür) ve nota oyunu sonuçları maddeyi
+  kendiliğinden tamamlar. Gam, şarkı ve tab maddeleri, bugünkü oturumlarda o araçta maddenin süresinin en az yarısı
+  kadar çalışılınca tamamlanır. "Başla" kulak eğitimini tür ve seviyeyle, sap ekranını oyun ayarlarıyla ya da
+  gam/kökle, şarkıyı planın temposuyla, tabı planın hızıyla açar.
 
 ### Aşama 9 — Şarkı modu
 - ChordPro ayrıştırıcı: başlık, sanatçı, ton, tempo, kapo, yorum ve bölüm (kıta / nakarat / köprü) yönergeleri.
@@ -279,6 +322,59 @@ değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
   (`src/audio/stretch.worklet.ts`); vuruş koruma (ataklar özgün hızda geçilir, çiftlenmez).
 - Ölçümler: yukarıda "Zaman esnetme ve ton değiştirme" tablosu.
 
+### Aşama 15 — Oyunlaştırma
+- XP, seviye, rozet ve günlük görevler ayrı durum saklamadan kayıtlı veriden saf fonksiyonlarla türetilir
+  (`src/features/gamify/logic.ts`): günlük oturumları, `results` (geçiş, ritim, kulak eğitimi, sap oyunu), `items`
+  (kayıt, kendi şarkı ve tab). JSON dışa/içe aktarma ve geçmiş veri kendiliğinden doğru sonuç verir.
+- XP: çalışılan dakika başına 1, en az bir dakika çalışılan gün +10; her geçiş egzersizi / ritim ölçümü / kulak
+  turu / sap oyunu turu 5 (ritimde %80+, kulakta seviye geçme, sapta hatasız tur için +5); kayıt 5, kendi şarkı/tab
+  10; her günlük görev 20, üçü birden +20.
+- Seviye: L→L+1 geçişi 100 + 50·(L−1) XP (2: 100, 3: 250, 4: 450, 5: 700 …); unvanlar Acemi (1), Çırak (5),
+  Kalfa (10), Usta (20), Üstat (30).
+- Günlük görevler: günde 3; ilki süre görevi (her üç günde bir 30 dk, diğer günler 15 dk), diğer ikisi 9'luk
+  havuzdan farklı ailelerden. Seçim gün anahtarına bağlı (gün numarasıyla tohumlanan mulberry32), saat diliminden
+  bağımsız. Görevler o günün verisinden kendiliğinden tamamlanır; süren oturum da canlı sayılır (dakika
+  çözünürlüğünde). Göreve dokununca ilgili araç açılır.
+- 25 rozet, 7 grup: çalışma (ilk oturum, 3/7/30 gün seri, 1/10/50 saat, 5 farklı egzersiz), akorlar (ilk geçiş,
+  dakikada 30/60, 5 farklı çift), ritim (ilk ölçüm, %80, %95 — en az 16 vuruş), kulak (ilk tur, 4. seviye, bir
+  türde tüm seviyeler), sap (ilk tur, hatasız tur), üretim (ilk kayıt, şarkı, tab), görevler (kusursuz gün,
+  25 görev). Kilitli rozetlerde ilerleme çubuğu ve değer; kazanılanlarda kazanılma günü (veri gün gün yeniden
+  oynatılarak bulunur).
+- Ana sayfada "Seviye ve görevler" kartı (seviye rozeti, XP çubuğu, bugünkü XP, 3 görev). Yeni "Başarılar" ekranı:
+  seviye ve özet sayılar, görevler, son 14 günün XP grafiği, kaynağa göre XP, "XP nasıl kazanılır?", tüm rozetler.
+- Bildirim: yeni rozet, tamamlanan görev ve seviye atlama için üstte kısa bildirim (4,5 sn, dokunmayı engellemez);
+  3'ten fazla haber tek özet bildirimde toplanır. Neyin bildirildiği `kv` deposunda `gamify` kaydında tutulur;
+  özellik ilk açıldığında mevcut başarılar sessizce "görüldü" sayılır.
+
+### Aşama 16 — Canlı efektler
+- Yeni "Efektler" ekranı: Ayarlar'da seçili giriş şu zincirden kulaklığa ya da hoparlöre gider: giriş kazancı →
+  [gürültü kapısı] → [overdrive] → [delay] → [reverb] → ana ses → güvenlik kırpıcısı → sessiz/açık. Kapalı efekt
+  zincirden tamamen çıkarılır, sese hiç dokunmaz (ölçüldü: fark 0).
+- Overdrive/distortion: WaveShaper, 4× aşırı örnekleme, `tanh(k·x)/tanh(k)` eğrisi; drive, ton (700 Hz – 11,2 kHz
+  alçak geçiren), seviye. Drive arttıkça ses patlamasın diye otomatik seviye dengeleme.
+- Delay: AudioWorklet içinde, örnek hassasiyetinde geri besleme; tekrarlar gitgide koyulaşır (4,5 kHz). Süre
+  20–1500 ms, tekrar ≤ %90, karışım; isteğe bağlı metronom temposuna bağlama (1/4, 1/8., 1/8, 1/8t, 1/16).
+- Reverb: ConvolverNode; dürtü yanıtı kodda üretilir (ses dosyası yok): kanal başına ayrı gürültü (stereo
+  genişlik), zamanla koyulaşan süzgeç, zarf T60'a tam oturtulur. Oda boyutu ön gecikmeyi (4–34 ms) ve dolma süresini
+  belirler; sönüm süresi (0,3–6 s) ve karışım ayarlanır.
+- Gürültü kapısı (worklet): 1 ms açılma, 6 dB histerezis, 50 ms bekleme, 80 ms kapanma.
+- Hazır sesler: Temiz, Crunch, Solo, Ambiyans. Kullanıcı kendi sesini adıyla kaydeder (`items`,
+  `type: 'fxpreset'`; aynı adla kaydedince üzerine yazılır, silinebilir). Ekranın durumu `persistent('fx')`.
+  Hazır ses yalnızca drive/delay/reverb'ü değiştirir; giriş kazancı, kapı ve ana ses cihaza bağlı olduğu için kalır.
+- Gecikme göstergesi: gidiş-dönüş tahmini = giriş (tarayıcı bildirmiyorsa işleme arabelleği kadar) +
+  `baseLatency` + `outputLatency` + overdrive'ın aşırı örnekleme gecikmesi; Ayarlar'da ölçülmüş gecikme varsa o
+  gösterilir. ≤ 12 ms "çok iyi", ≤ 25 ms "kabul edilebilir", üstü "yüksek" (ne yapılacağı yazılır: kablolu
+  kulaklık, Bluetooth yok, USB ses kartı).
+- Giriş ve çıkış seviye göstergeleri, KIRPMA ışığı (1 sn tutar).
+- Güvenlik: her açılışta ses kapalı başlar; ana ses varsayılanı %30, açılışta en fazla %50; "Kulaklık kullan"
+  uyarısı; zincirin sonunda gecikmesiz yumuşak kırpıcı. Geri besleme koruması (`HowlGuard`) üç durumda sesi
+  kendiliğinden kapatır ve nedenini yazar: 0,5 sn kesintisiz kırpma, 0,8 sn içinde ≥ 9 dB sürekli yükselen tek ton,
+  4 sn boyunca sönmeyen yüksek (RMS ≥ 0,25) saf ton. Ekrandan çıkınca zincir ve giriş kapanır.
+- Efektler ana sınırlayıcıyı (DynamicsCompressor, 6 ms ileri bakış) atlayan doğrudan çıkışa (`directOut()`)
+  bağlanır; ölçüm kancaları bu çıkışı da görür.
+- Günlükte yeni egzersiz türü: "Efektlerle çalma" (`activity.fx`).
+- Ölçümler: yukarıda "Canlı efektler" tablosu.
+
 ## Bilinen eksikler / hatalar
 
 - **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
@@ -290,18 +386,14 @@ değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
 - **Yayınlanmış site duman testi hiç çalıştırılamadı** (site yok). Site açılınca:
   `SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke`.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
-- **Aşama 9 ve sonrası GitHub'a gönderilmedi** (kullanıcı isteği, 2026-11-15: "push atma"). Commit'ler yerelde;
-  `git status -sb` kaç commit ileride olduğunu gösterir.
-- **Aşama 11–14 de yalnızca yerelde commit edildi, push edilmedi** (aynı kullanıcı isteği).
+- Aşama 15, 16 ve plan genişletmesi paralel olarak ayrı git worktree'lerinde geliştirilip `main`'de birleştirildi;
+  her dal kendi başına tüm testlerden geçti, birleşik hâl ayrıca tam test edildi.
 - Ses dosyası: esnetme kalitesi yalnızca ölçümle doğrulandı, **gerçek müzik kaydıyla kulakla dinlenmedi**.
   WSOLA zaman alanında çalışır; yoğun çok sesli miksajlarda ve %50'nin altındaki hızlarda pürüz/yankılanma,
   büyük ton kaydırmalarda (±5 yarım ton üstü) tını değişimi (formant kayması) beklenir. Ses tek kanala indirilir
   (stereo yok). Dosyanın tamamı bellekte çözülür (12 dakika ≈ 130 MB geçici bellek); telefonda büyük dosyalarda
   yük ve bellek ölçülmedi. Biçim desteği tarayıcıya bağlı. Sesler base64 saklandığı için JSON yedeği büyür.
   Döngü uçları yalnızca "şimdiki konum"dan ayarlanır (ince ayar düğmesi yok); döngü tempoya/ölçüye hizalanmaz.
-- **Günlük ve plan uçtan uca testleri gece yarısını geçerken kalabilir** (gerçek saate göre "bugün"ü kullanıyorlar;
-  2026-11-15 23:59'da başlayan tam çalıştırmada mobilde 2 test kaldı, hemen yeniden çalıştırınca geçti).
-  Uygulama hatası değil; testler sabit saatle (`page.clock`) çalışacak biçimde düzeltilmedi.
 - Kayıt: yalnızca başsız Chromium'da sınandı (Opus/WebM). Safari/iOS'ta MediaRecorder MP4/AAC üretir; bu yol
   ve gerçek mikrofonla kayıt denenmedi. Kayıt yalnızca kendi ekranı açıkken alınır (ekrandan çıkınca atılır);
   metronom ya da eşlikle birlikte kayıt, kırpma (trim), ses dosyası olarak dışa aktarma yok. Sesler base64
@@ -310,17 +402,35 @@ değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
 - Kulak eğitimi: çalınan seslerin doğruluğu yalnızca saf fonksiyon düzeyinde sınandı (hangi notalar, ne zaman);
   uçtan uca testler yalnızca "ses çıktı" diye bakıyor, perdeyi ölçmüyor. Akorlar hep kök konumunda ve dar
   dizilimde (çevrim, açık dizilim yok); melodi/ritim dikte, gam tanıma ve mikrofonla (çalarak) yanıt yok.
-  Yarıda bırakılan tur kaydedilmez. Günlük plan henüz kulak eğitimi önermiyor.
+  Yarıda bırakılan tur kaydedilmez.
 - Sap ve teori: yalnızca standart akort (alternatif akortlarda sap gösterilmez); CAGED yalnızca majör akor
-  biçimleri (minör biçimler yok); oyun mikrofonla çalarak yanıtlanamıyor (yalnızca düğmeyle), zaman sınırı yok;
-  günlük plan henüz gam/oyun önermiyor. Mobilde sap noktalarının dokunma alanı ~24×22 px (12 perde 390 px'e
+  biçimleri (minör biçimler yok); oyun mikrofonla çalarak yanıtlanamıyor (yalnızca düğmeyle), zaman sınırı yok.
+  Mobilde sap noktalarının dokunma alanı ~24×22 px (12 perde 390 px'e
   sığdığı için 44 px mümkün değil); asıl etkileşimler büyük düğmelerle yapılır.
 - Tab: yalnızca 4/4 ve on altılık ızgara (üçleme yok); çekiç, kaydırma, bend gibi teknik işaretleri yok; düz
   metin tab içe aktarma yok (dışa yazma fonksiyonu `toAscii` var ama arayüze bağlı değil).
 - Şarkı modunda her akor aynı sürer ("akor başına vuruş"); ChordPro süre taşımadığı için akorların gerçek ritmi
-  girilemez. Günlük plan henüz şarkı önermiyor.
-- Seviye testi öz değerlendirmedir (çalarak ölçüm yok). Plan yalnızca Katman 1–2 araçlarını kullanır; şarkı, tab,
-  sap ve kulak eğitimi maddeleri o aşamalar bitince eklenecek.
+  girilemez.
+- Seviye testi öz değerlendirmedir (çalarak ölçüm yok). Gam, şarkı ve tab sonuç kaydı tutmadığı için bu plan
+  maddeleri yalnızca oturum sayacıyla kaydedilen süreden kendiliğinden tamamlanır (sayaç kullanılmazsa elle
+  işaretlenir). Kullanıcının kendi şarkısını plandan açma (`openSongAt`) yalnızca tür denetiminden geçti, uçtan uca
+  testte hazır şarkı kullanıldı.
+- Oyunlaştırma: elle eklenen oturumlar da XP, seri ve süre görevlerine sayılır (günlükle tutarlı, ama elle XP
+  "kasılabilir"). Kayıt/şarkı/tab silinirse XP'si ve ilgili rozet de düşer; o rozet yeniden kazanılınca tekrar
+  bildirilmez. Şarkı/tab düzenlenince tarihi güncellendiği için "kazanılma günü" kayabilir. Günlük planın
+  tamamlanması XP'ye ya da görevlere bağlı değil. Süre ve çeşitlilik görevleri yalnızca günlükte oturum başlatılınca
+  ilerler. Rozet kazanılma günleri her açılışta tüm veri yeniden oynatılarak hesaplanır; çok büyük veri setinde
+  performans ölçülmedi. Uygulama açıkken gece yarısı geçişi (30 sn içinde yenilenmesi tasarlandı) uçtan uca test
+  edilmedi; bildirimler yalnızca Günlük ekranı üzerinden sınandı.
+- Canlı efektler: gerçek mikrofon, amfi, hoparlör ya da Bluetooth kulaklıkla denenmedi; geri besleme koruması
+  dijital döngüyle (uçtan uca) ve üretilmiş sinyallerle (birim) sınandı. Ses kulakla değerlendirilmedi. Yalnızca
+  Chromium'da sınandı (overdrive'ın 192 örneklik gecikmesi Chromium değeri).
+- "4 sn sönmeyen yüksek saf ton" kuralı kusursuz sabit bir sinüsü doymuş geri beslemeden ayıramaz; çok temiz, çok
+  yüksek ve uzun tutulan bir nota (e-bow, kompresörlü temiz ses) yanlışlıkla sesi kapatabilir.
+- Gecikme göstergesi tahmindir: Chrome giriş gecikmesini çoğu zaman bildirmiyor (işleme arabelleği kadar sayılır).
+  Ayarlar'daki kalibrasyon ana sınırlayıcıdan geçen yolu ölçtüğü için efekt yolundan ~6 ms fazla çıkabilir.
+- Overdrive eğrisi simetrik (yalnızca tek harmonikler, tüp benzeri çift harmonik yok); kabin benzetimi yok. Zincir
+  tek kanal (stereo yalnızca reverb kuyruğundan). Efektlerle çalınan ses kaydedilemiyor (Kayıt ham girişi alır).
 - Akor tanıma yalnızca sentez sesle doğrulandı (yukarıdaki nota bak). Tanınmayan türler: dim, aug, 6, 9, m7b5 ve
   bölü akorları (C/G); bunlar en yakın tanınan türe yorumlanır.
 - Akor tanımada da hoparlör sızıntısı sorunu var: eşlik çalarken mikrofon eşliğin akorunu da duyar.
@@ -352,11 +462,10 @@ değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
   çizimi `src/ui/Fretboard.tsx` (başka ekranlarda da kullanılabilir: `dots` + `start`).
 - Kulak eğitimi mantığı (seviyeler, tur üretimi, kilit açma, tür başına doğruluk): `src/music/ear.ts`. Yeni seviye
   eklemek için `INTERVAL_LEVELS` / `CHORD_LEVEL_ITEMS`'e satır eklemek yeter; yeni akor türü için ayrıca
-  `ear.chord.<tür>` metni gerekir. Oyunlaştırma (Aşama 15) için hazır veri: `results` deposunda `type: 'ear'`
-  ve `type: 'fretgame'` kayıtları.
+  `ear.chord.<tür>` metni gerekir.
 - Kayıt: giriş düğümü `inputNode()` (`src/audio/input.ts`), kayıt motoru `src/audio/recorder.ts`, çözme ve
   senkron A/B çalma `src/features/recorder/player.ts`, saf hesaplar `takes.ts`, dalga formu `src/ui/Waveform.tsx`.
-  Aşama 14 (ses dosyası) `decodeAudio` + `Waveform`'u, Aşama 16 (canlı efektler) `inputNode()`'u kullanabilir.
+  Aşama 14 (ses dosyası) `decodeAudio` + `Waveform`'u kullanır.
 - Zaman esnetme: saf sınıf `TimeStretcher` (`src/dsp/stretch.ts`; akış biçiminde, worklet ve testlerde aynı kod),
   worklet `src/audio/stretch.worklet.ts`, ana iş parçacığı tarafı `src/features/tracks/engine.ts` (durum:
   `trackPlayback` sinyali). Uçtan uca testte dosya yükleme: `tracks.spec.ts` (testte üretilen WAV +
@@ -366,4 +475,31 @@ değerlendirilmedi (aşağıdaki "bilinen eksikler"e bak).
 - Uçtan uca testte veritabanına hazır veri koymak için bkz. `ear.spec.ts` ("son seviye" testi): sayfada
   `indexedDB.open('gitar-app')` ile doğrudan yazıp sayfayı yenile.
 - Akor verisi ve teori: `src/music/chords.ts`, `src/music/theory.ts`. Grafikler: `src/ui/charts.tsx`.
+- Tarihe bağlı uçtan uca testlerde `installFixedClock(page)` (`tests/e2e/helpers.ts`) kullan: sahte saat 18 Kasım
+  2026 12:00'de başlar; saat `E2E_TIME=23:59:30` ile değiştirilebilir, test gece yarısını geçmesin diye başlangıç
+  geri çekilir. Testleri birden çok worktree'de aynı anda çalıştırmak için `E2E_PORT=<port>`.
+- Günlük plan üreticisi: `src/features/plan/generator.ts` (ek konular, `PIECE_LEVEL`, dakika dağılımları); şarkıyı
+  belirli tempoda açmak için `openSongAt(id, bpm)` (`Songs.tsx`).
+- Oyunlaştırma: saf mantık `src/features/gamify/logic.ts` (XP, `levelInfo`, `BADGES`, `QUESTS`/`dailyQuests`,
+  `gameSnapshot`, `badgeDates`), durum ve izleyici `store.ts` (`snapshot` computed sinyali, `startGameWatcher`,
+  bildirimler), arayüz `Gamify.tsx`. Veri değişikliği `onDbWrite` (`src/db/db.ts`) ile izlenir.
+  - Yeni rozet: `BADGES`'e satır (gerekirse `Stats`'a alan) ve `gamify.badge.<id>` + `.desc` metinleri; birim
+    testindeki rozet tablosu da güncellenmeli. Yeni görev: `QUESTS` + `QUEST_POOL` + `gamify.quest.<id>` +
+    `Gamify.tsx`'teki `QUEST_ROUTE`. Yeni veri türü XP'ye bağlanacaksa: `GameData`'ya alan, `buildGameData`'da
+    ayıklama, `dayXp`'de puan.
+  - Uçtan uca testte veri eklemeden önce `window.__gitar.flush()` ile oyun durumunun ilk yazımını bekle; yoksa
+    eklenen veri "zaten görülmüş" sayılabilir (bkz. `gamify.spec.ts`).
+- Canlı efektler: saf DSP `src/dsp/fx.ts` (eğriler, `FeedbackDelay`, `reverbImpulse`, `NoiseGate`, `HowlGuard`),
+  worklet `src/audio/fx.worklet.ts` (`gitar-gate`, `gitar-delay`), zincir `src/features/fx/chain.ts` (aynı kod
+  canlıda ve `OfflineAudioContext`'te), canlı dinleme `live.ts`, ayarlar ve hazır sesler `logic.ts`, ekran
+  `Effects.tsx`.
+  - Yeni efekt: `chain.ts`'te aşama (`stages`'e `{ in, out }`, `apply`'da sıra), `FxPreset`'e alan,
+    `sanitizePreset`'e sınırlar, ekranda kart.
+  - Gecikmesiz çıkış: `directOut()` (`src/audio/engine.ts`); `masterOut()` kompresör yüzünden 6 ms geciktirir.
+    Web Audio'da geri beslemeli döngü kurmayın (Chromium her turda 128 örnek ekliyor); örnek hassasiyeti için
+    worklet.
+  - Uçtan uca: `window.__gitar.renderFx(ayarlar, 'impulse' | 'tone' | 'samples', saniye)` çevrimdışı giriş/çıkış
+    örnekleri; canlı durum `window.__gitar.fx()`; gerçek geri besleme döngüsü için `effects.spec.ts`
+    (`__gitarTestInput`, `tapOutput()`). Testte sabit sinüsü yüksek seste 4 sn'den uzun dinletmeyin: koruma sesi
+    kapatır.
 - Windows'ta Git Bash heredoc'ları tek tırnak sayısı tek olunca bozuluyor; dosyaları doğrudan yaz.
