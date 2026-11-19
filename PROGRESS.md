@@ -1,7 +1,12 @@
 # İlerleme
 
-Son güncelleme: 2026-11-19 · Biten aşama: **16 / 16** (tüm katmanlar tamam) · Sıradaki: gerçek gitarla deneme,
-yayın ve aşağıdaki "Bilinen eksikler"
+Son güncelleme: 2026-11-19 · Biten aşama: **16 / 16** (tüm katmanlar tamam) · Sıradaki: gerçek gitarla deneme
+ve aşağıdaki "Bilinen eksikler"
+
+**Yayında:** <https://mehmetkutlu32.github.io/guitar-coach/> (depo herkese açık, Pages kaynağı GitHub Actions).
+2026-11-19: Actions'ta build + Vitest + Playwright (Linux, başsız Chromium) yeşil, yayın başarılı; yayınlanan sitede
+duman testi (`SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke`: açılış, PWA kurulabilirlik,
+çevrimdışı açılış) geçti.
 
 Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DECISIONS.md](DECISIONS.md).
 
@@ -377,14 +382,6 @@ Gerçek ses donanımıyla ölçülmedi; gecikme göstergesi değerleri başsız 
 
 ## Bilinen eksikler / hatalar
 
-- **Kod GitHub'da (`MehmetKutlu32/guitar-coach`, `main`), ama site yayında değil.** 2026-11-15'te
-  `https://mehmetkutlu32.github.io/guitar-coach/` 404 döndü; deponun herkese açık API'si de 404 döndü, yani depo
-  büyük olasılıkla özel. Ücretsiz planda özel depodan Pages yayınlanmaz. Yayın için: depoyu herkese açık yap (ya da
-  Pages destekleyen plan), sonra Settings → Pages → Source: **GitHub Actions**.
-- **CI sonucu bu oturumdan okunamıyor** (`gh` giriş yapmamış, API 404). İş akışının Linux'ta başsız Chromium'da
-  geçip geçmediği doğrulanmadı; GitHub'daki Actions sekmesinden bakılmalı.
-- **Yayınlanmış site duman testi hiç çalıştırılamadı** (site yok). Site açılınca:
-  `SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke`.
 - Gerçek mikrofon/gitar ile ve gerçek hoparlörle elle deneme yapılmadı; tüm doğrulama üretilmiş sinyallerle.
 - Aşama 15, 16 ve plan genişletmesi paralel olarak ayrı git worktree'lerinde geliştirilip `main`'de birleştirildi;
   her dal kendi başına tüm testlerden geçti, birleşik hâl ayrıca tam test edildi.
