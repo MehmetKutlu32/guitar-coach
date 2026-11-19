@@ -1,7 +1,7 @@
 import { effect } from '@preact/signals';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { clampBpm, MAX_BPM, MIN_BPM } from '../../audio/clock';
-import { dbAll, dbDelete, dbPut, newId } from '../../db/db';
+import { dbAll, dbDelete, dbGet, dbPut, newId } from '../../db/db';
 import { persistent } from '../../db/persist';
 import { t, type Key } from '../../i18n';
 import {
@@ -62,6 +62,13 @@ function settingsFor(record: SongRecord, song: Song): SongSettings {
 
 function updateSettings(id: string, current: SongSettings, patch: Partial<SongSettings>): void {
   songsStore.update({ settings: { ...songsStore.state.peek().settings, [id]: { ...current, ...patch } } });
+}
+
+/** Şarkıyı verilen tempoyla açar (günlük plan). Şarkının öbür ayarları (transpoze, kapo…) korunur. */
+export async function openSongAt(id: string, bpm: number): Promise<void> {
+  const record: unknown = BUILTIN_SONGS.find((s) => s.id === id) ?? (await dbGet('items', id));
+  if (isSongRecord(record)) updateSettings(id, settingsFor(record, parseChordPro(record.text)), { bpm: clampBpm(bpm) });
+  navigate('songs', id);
 }
 
 const titleOf = (song: Song) => song.title.trim() || t('songs.untitled');

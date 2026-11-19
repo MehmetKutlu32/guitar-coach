@@ -1,4 +1,8 @@
+import { clampBpm } from '../../audio/clock';
 import type { Key } from '../../i18n';
+import { EAR_PASS, EAR_ROUND, earLevels, isPass, itemAccuracy, unlockedLevel, type EarKind, type EarResult } from '../../music/ear';
+import { gameScore, type GameMode, type GameResult } from '../../music/fretboard';
+import { scaleRootName, type ScaleId } from '../../music/scales';
 import { COMMON_NAMES } from '../../music/theory';
 import { pairKey, perMinute, type TransitionResult } from '../chords/transitions';
 import { activityTotals, addDays, dayKey, type SessionRecord } from '../log/stats';
@@ -110,11 +114,26 @@ export type PlanSetup =
   | { kind: 'transition'; a: string; b: string; seconds: number }
   | { kind: 'rhythm'; bpm: number; what: string; bars: number }
   | { kind: 'pattern'; bpm: number; patternId: string }
-  | { kind: 'backing'; progressionId: string; key: number; bpm: number; style: 'rock' | 'blues' | 'pop' | 'funk' };
+  | { kind: 'backing'; progressionId: string; key: number; bpm: number; style: 'rock' | 'blues' | 'pop' | 'funk' }
+  | { kind: 'ear'; earKind: EarKind; level: number }
+  | { kind: 'fretgame'; mode: GameMode; maxFret: number; naturals: boolean }
+  | { kind: 'scale'; root: number; scale: ScaleId }
+  | { kind: 'song'; id: string; bpm: number }
+  | { kind: 'tab'; id: string; speed: number };
 
 export interface Text {
   key: Key;
   params?: Record<string, string | number>;
+  /** Değeri de çevrilecek parametreler (değer bir metin anahtarı; ör. aralık ya da gam adı). */
+  refs?: Record<string, Key>;
+}
+
+/** Plana girebilecek bir şarkı ya da tab (hazır ya da kullanıcının). */
+export interface Piece {
+  id: string;
+  name: string;
+  /** Özgün tempo. */
+  bpm: number;
 }
 
 export interface PlanItem {
@@ -135,6 +154,14 @@ export interface PlanInput {
   transitions: TransitionResult[];
   rhythm: RhythmResult[];
   sessions: SessionRecord[];
+  /** Kulak eğitimi turları. */
+  ear: EarResult[];
+  /** Sapta nota oyunu turları. */
+  fretgame: GameResult[];
+  /** Şarkı modundaki şarkılar (hazırlar + kullanıcının). */
+  songs: Piece[];
+  /** Riff kütüphanesindeki tablar (hazırlar + kullanıcının). */
+  tabs: Piece[];
 }
 
 const OPEN_PAIRS: [string, string][] = [
@@ -275,24 +302,24 @@ export function chooseRhythm(input: PlanInput): RhythmChoice {
   return { bpm: Math.min(160, last.bpm + 5), what, reason: { key: 'plan.why.rhythmUp', params: { n: accuracy } } };
 }
 
-const JAMS: { progressionId: string; key: number; bpm: number; style: 'rock' | 'blues' | 'pop' | 'funk'; scale: Key }[][] = [
+const JAMS: { progressionId: string; key: number; bpm: number; style: 'rock' | 'blues' | 'pop' | 'funk'; scale: ScaleId }[][] = [
   [
-    { progressionId: 'minorRock', key: 9, bpm: 80, style: 'rock', scale: 'scale.minorPent' },
-    { progressionId: 'blues12', key: 9, bpm: 80, style: 'blues', scale: 'scale.minorPent' },
-    { progressionId: 'minorRock', key: 4, bpm: 85, style: 'rock', scale: 'scale.minorPent' },
+    { progressionId: 'minorRock', key: 9, bpm: 80, style: 'rock', scale: 'minorPent' },
+    { progressionId: 'blues12', key: 9, bpm: 80, style: 'blues', scale: 'minorPent' },
+    { progressionId: 'minorRock', key: 4, bpm: 85, style: 'rock', scale: 'minorPent' },
   ],
   [
-    { progressionId: 'blues12', key: 9, bpm: 95, style: 'blues', scale: 'scale.blues' },
-    { progressionId: 'pop1564', key: 7, bpm: 95, style: 'pop', scale: 'scale.majorPent' },
-    { progressionId: 'minorPop', key: 4, bpm: 100, style: 'rock', scale: 'scale.minorPent' },
-    { progressionId: 'blues12', key: 4, bpm: 100, style: 'blues', scale: 'scale.blues' },
+    { progressionId: 'blues12', key: 9, bpm: 95, style: 'blues', scale: 'blues' },
+    { progressionId: 'pop1564', key: 7, bpm: 95, style: 'pop', scale: 'majorPent' },
+    { progressionId: 'minorPop', key: 4, bpm: 100, style: 'rock', scale: 'minorPent' },
+    { progressionId: 'blues12', key: 4, bpm: 100, style: 'blues', scale: 'blues' },
   ],
   [
-    { progressionId: 'dorianVamp', key: 9, bpm: 100, style: 'funk', scale: 'scale.dorian' },
-    { progressionId: 'minorBlues', key: 2, bpm: 90, style: 'blues', scale: 'scale.blues' },
-    { progressionId: 'mixo', key: 7, bpm: 110, style: 'rock', scale: 'scale.mixolydian' },
-    { progressionId: 'jazz251', key: 0, bpm: 110, style: 'pop', scale: 'scale.major' },
-    { progressionId: 'andalusian', key: 9, bpm: 100, style: 'rock', scale: 'scale.harmonicMinor' },
+    { progressionId: 'dorianVamp', key: 9, bpm: 100, style: 'funk', scale: 'dorian' },
+    { progressionId: 'minorBlues', key: 2, bpm: 90, style: 'blues', scale: 'blues' },
+    { progressionId: 'mixo', key: 7, bpm: 110, style: 'rock', scale: 'mixolydian' },
+    { progressionId: 'jazz251', key: 0, bpm: 110, style: 'pop', scale: 'major' },
+    { progressionId: 'andalusian', key: 9, bpm: 100, style: 'rock', scale: 'harmonicMinor' },
   ],
 ];
 
@@ -307,11 +334,246 @@ export function recentSeconds(sessions: SessionRecord[], today: string, activity
   return activityTotals(sessions, addDays(today, -6)).find((a) => a.activity === activity)?.seconds ?? 0;
 }
 
-/** Dakikaların bloklara dağılımı: [akort, geçiş 1, geçiş 2, ritim, vuruş kalıbı, eşlik]. */
+// ---------- Ek konular: kulak eğitimi, sap ve teori, şarkı / tab ----------
+
+/** Temel bloklara (akort, geçiş, ritim, eşlik) ek olarak plana giren konular. */
+export type Extra = 'ear' | 'theory' | 'repertoire';
+
+/** Ek konunun günlükteki egzersiz türleri (oturum kayıtlarında). */
+const EXTRA_ACTIVITIES: Record<Extra, string[]> = {
+  ear: ['ear'],
+  theory: ['theory'],
+  repertoire: ['song', 'tab'],
+};
+
+/** Hedefe göre ek konuların öncelik sırası ("hepsi" hedefinde sıra günden güne döner). */
+const GOAL_EXTRAS: Record<Goal, Extra[]> = {
+  chords: ['repertoire', 'ear', 'theory'],
+  lead: ['theory', 'ear', 'repertoire'],
+  riffs: ['repertoire', 'theory', 'ear'],
+  all: ['ear', 'theory', 'repertoire'],
+};
+
+/** "Uzun süredir çalışılmadı" puanının üst sınırı (gün); hiç çalışılmamış konu da bu kadar sayılır. */
+export const STALE_CAP = 14;
+
+/** Bugünden önceki kayıtlar: konu ve içerik seçimi gün içinde değişmesin diye bugünün sonuçları sayılmaz. */
+const beforeToday = <T extends { date: number }>(list: T[], today: string): T[] => list.filter((r) => dayKey(r.date) < today);
+
+/** Ek konunun bugünden önce en son çalışıldığı günden bu yana geçen gün (hiç çalışılmadıysa null). */
+export function daysSinceExtra(input: PlanInput, extra: Extra): number | null {
+  const { today } = input;
+  const dates: number[] = beforeToday(input.sessions, today)
+    .filter((s) => EXTRA_ACTIVITIES[extra].some((a) => (s.activities[a] ?? 0) > 0))
+    .map((s) => s.date);
+  if (extra === 'ear') dates.push(...beforeToday(input.ear, today).map((r) => r.date));
+  if (extra === 'theory') dates.push(...beforeToday(input.fretgame, today).map((r) => r.date));
+  if (dates.length === 0) return null;
+  return Math.max(0, dayIndex(today) - dayIndex(dayKey(Math.max(...dates))));
+}
+
+/**
+ * Ek konuları öncelik sırasıyla verir. Puan = hedefe göre öncelik (4 / 2 / 0) + son çalışmadan bu yana gün
+ * (en çok STALE_CAP). Böylece hedefle ilgili konu öne çıkar, ama birkaç gündür ihmal edilen konu onu geçer.
+ */
+export function chooseExtras(input: PlanInput): Extra[] {
+  const base = GOAL_EXTRAS[input.profile.goal];
+  const shiftBy = input.profile.goal === 'all' ? dayIndex(input.today) % base.length : 0;
+  const order = [...base.slice(shiftBy), ...base.slice(0, shiftBy)];
+  return order
+    .map((extra, i) => ({ extra, i, score: (order.length - 1 - i) * 2 + Math.min(STALE_CAP, daysSinceExtra(input, extra) ?? STALE_CAP) }))
+    .sort((x, y) => y.score - x.score || x.i - y.i)
+    .map((x) => x.extra);
+}
+
+export interface EarChoice {
+  kind: EarKind;
+  level: number;
+  reason: Text;
+}
+
+/** Kulak eğitimi: iki türden açık seviyesi düşük olanı, o seviyede; nedeni en zayıf aralık / akor türü. */
+export function chooseEar(input: PlanInput): EarChoice {
+  const results = beforeToday(input.ear, input.today);
+  const interval = unlockedLevel(results, 'interval');
+  const chord = unlockedLevel(results, 'chord');
+  let kind: EarKind;
+  if (interval !== chord) kind = interval < chord ? 'interval' : 'chord';
+  else if (input.profile.goal === 'chords') kind = 'chord';
+  else if (input.profile.goal === 'lead') kind = 'interval';
+  else kind = dayIndex(input.today) % 2 === 0 ? 'interval' : 'chord';
+  const level = kind === 'interval' ? interval : chord;
+  const items = earLevels(kind)[level - 1].items;
+  const weakest = itemAccuracy(results, kind).find((a) => items.includes(a.item) && a.asked >= 3 && a.percent < EAR_PASS);
+  let reason: Text;
+  if (weakest) {
+    const name = (kind === 'interval' ? `interval.${weakest.item}` : `ear.chord.${weakest.item}`) as Key;
+    reason = { key: 'plan.why.earWeak', params: { n: weakest.percent }, refs: { name } };
+  } else if (!results.some((r) => r.kind === kind)) {
+    reason = { key: 'plan.why.earFirst' };
+  } else if (level === earLevels(kind).length && results.some((r) => r.kind === kind && r.level === level && isPass(r))) {
+    reason = { key: 'plan.why.earTop' };
+  } else {
+    reason = { key: 'plan.why.earLevel', params: { need: Math.ceil((EAR_PASS / 100) * EAR_ROUND), total: EAR_ROUND } };
+  }
+  return { kind, level, reason };
+}
+
+/** Nota oyunu ayar basamakları: kolaydan zora. */
+export const GAME_STEPS: { mode: GameMode; maxFret: number; naturals: boolean }[] = [
+  { mode: 'name', maxFret: 5, naturals: true },
+  { mode: 'find', maxFret: 5, naturals: true },
+  { mode: 'name', maxFret: 12, naturals: true },
+  { mode: 'find', maxFret: 12, naturals: true },
+  { mode: 'name', maxFret: 12, naturals: false },
+  { mode: 'find', maxFret: 12, naturals: false },
+];
+/** Seviyeye göre ilk basamak. */
+const GAME_START = [0, 0, 2];
+/** Bir basamağın "oturmuş" sayılması için son turunun puanı. */
+export const GAME_MASTERED = 90;
+/** Son turların ortalaması bunun altındaysa oyun önerilir. */
+export const GAME_LOW = 80;
+/** Oyun bu kadar gündür oynanmadıysa yeniden önerilir. */
+export const GAME_STALE_DAYS = 7;
+
+export type TheoryChoice =
+  | { kind: 'fretgame'; step: (typeof GAME_STEPS)[number]; reason: Text }
+  | { kind: 'scale'; root: number; scale: ScaleId; reason: Text };
+
+/**
+ * Sap ve teori: nota oyununun puanı düşükse ya da oyun uzun süredir oynanmadıysa oyun (sıradaki oturmamış
+ * basamakta); yoksa o günün eşliğinin tonunda, eşlikte önerilen gam.
+ */
+export function chooseTheory(input: PlanInput, jam: { key: number; scale: ScaleId }): TheoryChoice {
+  const rounds = [...beforeToday(input.fretgame, input.today)].sort((x, y) => x.date - y.date);
+  let step = GAME_START[input.profile.level];
+  while (step < GAME_STEPS.length - 1) {
+    const s = GAME_STEPS[step];
+    const last = rounds.filter((r) => r.mode === s.mode && r.maxFret === s.maxFret && r.naturalsOnly === s.naturals).pop();
+    if (!last || gameScore(last.correct, last.total) < GAME_MASTERED) break;
+    step++;
+  }
+  const game = (reason: Text): TheoryChoice => ({ kind: 'fretgame', step: GAME_STEPS[step], reason });
+  if (rounds.length === 0) return game({ key: 'plan.why.gameFirst' });
+  const recent = rounds.slice(-3);
+  const avg = Math.round(recent.reduce((s, r) => s + gameScore(r.correct, r.total), 0) / recent.length);
+  if (avg < GAME_LOW) return game({ key: 'plan.why.gameLow', params: { n: avg, target: GAME_LOW } });
+  const days = dayIndex(input.today) - dayIndex(dayKey(rounds[rounds.length - 1].date));
+  if (days >= GAME_STALE_DAYS) return game({ key: 'plan.why.gameStale', params: { days } });
+  return { kind: 'scale', root: jam.key, scale: jam.scale, reason: { key: 'plan.why.scale', params: { key: COMMON_NAMES[jam.key] } } };
+}
+
+/** Hazır şarkı ve tabların zorluğu (bu seviyeden itibaren önerilir). Kullanıcının kendi parçaları hep uygun sayılır. */
+export const PIECE_LEVEL: Record<string, 0 | 1 | 2> = {
+  'builtin:dort-akor': 0,
+  'builtin:pazartesi-blues': 1,
+  'builtin:sahil-yolu': 1,
+  'builtin:kromatik': 0,
+  'builtin:tel-atlama': 0,
+  'builtin:power': 0,
+  'builtin:pentatonik': 1,
+  'builtin:boogie': 1,
+};
+
+/** Hedefe göre şarkı / tab dönüşümü (günden güne). */
+const REPERTOIRE_CYCLE: Record<Goal, ('song' | 'tab')[]> = {
+  chords: ['song', 'song', 'tab'],
+  lead: ['tab', 'song', 'tab'],
+  riffs: ['tab', 'tab', 'song'],
+  all: ['song', 'tab'],
+};
+/** Seviyeye göre şarkı temposu (özgün tempoya oran) ve tab hızı (%). */
+export const SONG_TEMPO = [0.75, 0.9, 1];
+export const TAB_SPEED = [50, 75, 100];
+
+export type RepertoireChoice =
+  | { kind: 'song'; piece: Piece; bpm: number; percent: number }
+  | { kind: 'tab'; piece: Piece; speed: number };
+
+/** Şarkı ya da riff: hedefe göre tür, parça günden güne döner; yeni başlayana yavaşlatılmış. */
+export function chooseRepertoire(input: PlanInput): RepertoireChoice | null {
+  const { profile } = input;
+  const day = dayIndex(input.today);
+  const cycle = REPERTOIRE_CYCLE[profile.goal];
+  const fits = (list: Piece[]) => list.filter((p) => (PIECE_LEVEL[p.id] ?? 0) <= profile.level);
+  const wanted = cycle[day % cycle.length];
+  let kind: 'song' | 'tab' = wanted;
+  let pool = fits(wanted === 'song' ? input.songs : input.tabs);
+  if (pool.length === 0) {
+    kind = wanted === 'song' ? 'tab' : 'song';
+    pool = fits(kind === 'song' ? input.songs : input.tabs);
+  }
+  if (pool.length === 0) return null;
+  const piece = pool[Math.floor(day / cycle.length) % pool.length];
+  if (kind === 'tab') return { kind, piece, speed: TAB_SPEED[profile.level] };
+  const ratio = SONG_TEMPO[profile.level];
+  return { kind, piece, bpm: clampBpm(piece.bpm * ratio), percent: Math.round(ratio * 100) };
+}
+
+function extraItem(input: PlanInput, extra: Extra, minutes: number, jam: { key: number; scale: ScaleId }): PlanItem | null {
+  if (extra === 'ear') {
+    const e = chooseEar(input);
+    return {
+      id: `ear:${e.kind}:${e.level}`,
+      minutes,
+      title: { key: e.kind === 'interval' ? 'plan.item.earInterval' : 'plan.item.earChord', params: { level: e.level } },
+      reason: e.reason,
+      setup: { kind: 'ear', earKind: e.kind, level: e.level },
+    };
+  }
+  if (extra === 'theory') {
+    const th = chooseTheory(input, jam);
+    if (th.kind === 'scale') {
+      return {
+        id: `scale:${th.root}:${th.scale}`,
+        minutes,
+        title: { key: 'plan.item.scale', params: { root: scaleRootName(th.root, th.scale) }, refs: { scale: `scale.${th.scale}` as Key } },
+        reason: th.reason,
+        setup: { kind: 'scale', root: th.root, scale: th.scale },
+      };
+    }
+    const s = th.step;
+    return {
+      id: `fretgame:${s.mode}:${s.maxFret}:${s.naturals ? 'n' : 'a'}`,
+      minutes,
+      title: { key: 'plan.item.fretgame', params: { n: s.maxFret }, refs: { mode: s.mode === 'name' ? 'game.modeName' : 'game.modeFind' } },
+      reason: th.reason,
+      setup: { kind: 'fretgame', mode: s.mode, maxFret: s.maxFret, naturals: s.naturals },
+    };
+  }
+  const r = chooseRepertoire(input);
+  if (!r) return null;
+  if (r.kind === 'tab') {
+    return {
+      id: `tab:${r.piece.id}`,
+      minutes,
+      title: { key: 'plan.item.tab', params: { name: r.piece.name, n: r.speed } },
+      reason: { key: r.speed < 100 ? 'plan.why.tabSlow' : 'plan.why.tab' },
+      setup: { kind: 'tab', id: r.piece.id, speed: r.speed },
+    };
+  }
+  return {
+    id: `song:${r.piece.id}`,
+    minutes,
+    title: { key: 'plan.item.song', params: { name: r.piece.name, bpm: r.bpm } },
+    reason: r.percent < 100 ? { key: 'plan.why.songSlow', params: { n: r.percent } } : { key: 'plan.why.song' },
+    setup: { kind: 'song', id: r.piece.id, bpm: r.bpm },
+  };
+}
+
+/** Plandaki gösterim sırası (dakikalar öncelikle dağıtılır, sıra sabittir). */
+const KIND_ORDER: PlanSetup['kind'][] = ['tune', 'transition', 'rhythm', 'pattern', 'fretgame', 'scale', 'backing', 'song', 'tab', 'ear'];
+
+/**
+ * Dakikaların bloklara dağılımı:
+ * [akort, geçiş 1, geçiş 2, ritim, vuruş kalıbı, eşlik, ek konu 1, ek konu 2, ek konu 3].
+ * Ek konu dakikaları öncelik sırasına göre verilir (en öncelikli konu en uzun süreyi alır).
+ */
 const SPLIT: Record<PlanMinutes, number[]> = {
-  15: [1, 5, 0, 5, 0, 4],
-  30: [2, 6, 5, 8, 0, 9],
-  45: [2, 7, 6, 10, 8, 12],
+  15: [1, 4, 0, 3, 0, 4, 3, 0, 0],
+  30: [2, 5, 4, 6, 0, 6, 4, 3, 0],
+  45: [2, 6, 5, 7, 5, 8, 5, 4, 3],
 };
 
 /** Günlük planı üretir. Dakikaların toplamı her zaman istenen süreye eşittir. */
@@ -391,7 +653,7 @@ export function generatePlan(input: PlanInput): PlanItem[] {
 
   const jams = JAMS[profile.level];
   const jam = jams[day % jams.length];
-  items.push({
+  const backing: PlanItem = {
     id: `backing:${jam.progressionId}:${jam.key}`,
     minutes: split[5],
     title: { key: 'plan.item.backing', params: { key: COMMON_NAMES[jam.key], bpm: jam.bpm } },
@@ -400,21 +662,60 @@ export function generatePlan(input: PlanInput): PlanItem[] {
         ? { key: 'plan.why.neglected' }
         : { key: 'plan.why.backing', params: { key: COMMON_NAMES[jam.key] } },
     setup: { kind: 'backing', progressionId: jam.progressionId, key: jam.key, bpm: jam.bpm, style: jam.style },
+  };
+  items.push(backing);
+
+  // Ek konular: öncelik sırasıyla ek dakika bloklarına. İçerik bulunamazsa (ör. hiç parça yok) dakikası eşliğe.
+  const extras = chooseExtras(input);
+  split.slice(6).forEach((mins, i) => {
+    if (mins <= 0) return;
+    const item = extraItem(input, extras[i], mins, jam);
+    if (item) items.push(item);
+    else backing.minutes += mins;
   });
 
-  return items.filter((it) => it.minutes > 0);
+  return items.filter((it) => it.minutes > 0).sort((x, y) => KIND_ORDER.indexOf(x.setup.kind) - KIND_ORDER.indexOf(y.setup.kind));
 }
 
-/** Bugün kaydedilen sonuçlara bakarak kendiliğinden tamamlanmış sayılan maddeler. */
-export function autoDone(items: PlanItem[], input: Pick<PlanInput, 'today' | 'transitions' | 'rhythm'>): string[] {
+/** Bugünkü oturum kayıtlarında bir egzersiz türüne harcanan saniye. */
+function todaySeconds(sessions: SessionRecord[], today: string, activity: string): number {
+  return sessions.filter((s) => dayKey(s.date) === today).reduce((sum, s) => sum + (s.activities[activity] ?? 0), 0);
+}
+
+/** Sonuç kaydı tutmayan araçlarda (gam, şarkı, tab) bugünkü oturumlarda maddenin süresinin en az bu oranı çalışılınca tamam sayılır. */
+export const SESSION_DONE_RATIO = 0.5;
+
+/**
+ * Bugün kaydedilen sonuçlara bakarak kendiliğinden tamamlanmış sayılan maddeler: geçiş (aynı çift), ritim, kulak
+ * eğitimi (aynı tür), nota oyunu için bugünkü sonuç; gam, şarkı ve tab için bugünkü oturumlarda o araçta geçen süre.
+ */
+export function autoDone(
+  items: PlanItem[],
+  input: Pick<PlanInput, 'today' | 'transitions' | 'rhythm'> & Partial<Pick<PlanInput, 'ear' | 'fretgame' | 'sessions'>>,
+): string[] {
+  const { today } = input;
+  const isToday = (r: { date: number }) => dayKey(r.date) === today;
+  const sessionDone = (activity: string, minutes: number) =>
+    todaySeconds(input.sessions ?? [], today, activity) >= minutes * 60 * SESSION_DONE_RATIO;
   const done: string[] = [];
   for (const it of items) {
-    if (it.setup.kind === 'transition') {
-      const key = pairKey(it.setup.a, it.setup.b);
-      if (input.transitions.some((r) => r.pair === key && dayKey(r.date) === input.today)) done.push(it.id);
-    } else if (it.setup.kind === 'rhythm') {
-      if (input.rhythm.some((r) => dayKey(r.date) === input.today)) done.push(it.id);
+    const s = it.setup;
+    let ok = false;
+    if (s.kind === 'transition') {
+      const key = pairKey(s.a, s.b);
+      ok = input.transitions.some((r) => r.pair === key && isToday(r));
+    } else if (s.kind === 'rhythm') {
+      ok = input.rhythm.some(isToday);
+    } else if (s.kind === 'ear') {
+      ok = (input.ear ?? []).some((r) => r.kind === s.earKind && isToday(r));
+    } else if (s.kind === 'fretgame') {
+      ok = (input.fretgame ?? []).some(isToday);
+    } else if (s.kind === 'scale') {
+      ok = sessionDone('theory', it.minutes);
+    } else if (s.kind === 'song' || s.kind === 'tab') {
+      ok = sessionDone(s.kind, it.minutes);
     }
+    if (ok) done.push(it.id);
   }
   return done;
 }
