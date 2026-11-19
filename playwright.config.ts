@@ -4,7 +4,8 @@ import { BASE_PATH, FAKE_MIC_WAV, writeFakeMicWav } from './tests/e2e/helpers';
 // Chromium'un sahte mikrofonu bu dosyayı döngüde çalar (gerçek getUserMedia yolu test edilir).
 writeFakeMicWav();
 
-const PORT = 4173;
+// Birden çok çalışma kopyasında (git worktree) testleri aynı anda koşturmak için E2E_PORT verilebilir.
+const PORT = Number(process.env.E2E_PORT ?? 4173);
 const BASE = `http://localhost:${PORT}${BASE_PATH}`;
 
 export default defineConfig({
@@ -15,7 +16,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   webServer: {
-    command: 'npm run build && npm run preview',
+    command: `npm run build && npx vite preview --port ${PORT} --strictPort`,
     url: BASE,
     reuseExistingServer: false,
     timeout: 120_000,
