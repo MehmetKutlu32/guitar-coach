@@ -1,17 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectHealthyLayout, shot } from './helpers';
+import { expectHealthyLayout, installFixedClock, localDayKey, shot } from './helpers';
 
-const pad = (n: number) => String(n).padStart(2, '0');
-function localDay(offsetDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+// "Bugün" gerçek saate değil sabit sahte saate göre: test gece yarısı başlasa da gün değişmez.
+let start = 0;
+test.beforeEach(async ({ page }) => {
+  start = await installFixedClock(page);
+});
 
-/** Sahte saati kurar ve durdurur: zaman yalnızca `runFor` ile ilerler (kararlı sayaç değerleri için). */
+/** Sahte saati durdurur: zaman yalnızca `runFor` ile ilerler (kararlı sayaç değerleri için). */
 async function freezeClock(page: Page): Promise<void> {
-  const now = Date.now();
-  await page.clock.install({ time: now });
+  const now = await page.evaluate(() => Date.now());
   await page.clock.pauseAt(now + 1000);
 }
 
@@ -77,7 +75,7 @@ test('oturum zamanlayıcı süreyi araçlara göre ayırır; seri, grafik ve ge�
 
   // Dün için elle 20 dakika akor çalışması ekle → seri 2 gün.
   await page.getByTestId('manual-add').click();
-  await page.getByTestId('manual-date').fill(localDay(-1));
+  await page.getByTestId('manual-date').fill(localDayKey(start, -1));
   await page.getByTestId('manual-activity').selectOption('chords');
   await expectHealthyLayout(page);
   await page.getByTestId('manual-save').click();
