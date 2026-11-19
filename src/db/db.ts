@@ -54,6 +54,19 @@ async function store(name: StoreName, mode: IDBTransactionMode): Promise<IDBObje
   return db.transaction(name, mode).objectStore(name);
 }
 
+type WriteListener = (store: StoreName) => void;
+const writeListeners = new Set<WriteListener>();
+
+/** Depolara yazıldıkça (ekleme, silme, içe aktarma) çağrılır. Dönen fonksiyon aboneliği kaldırır. */
+export function onDbWrite(fn: WriteListener): () => void {
+  writeListeners.add(fn);
+  return () => writeListeners.delete(fn);
+}
+
+function notifyWrite(name: StoreName): void {
+  for (const fn of writeListeners) fn(name);
+}
+
 export function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
@@ -70,6 +83,7 @@ export async function kvSet(key: string, value: unknown): Promise<void> {
 
 export async function dbPut<T extends DbRecord>(name: Exclude<StoreName, 'kv'>, record: T): Promise<T> {
   await wrap((await store(name, 'readwrite')).put(record));
+  notifyWrite(name);
   return record;
 }
 
@@ -85,10 +99,12 @@ export async function dbAll<T extends DbRecord>(name: Exclude<StoreName, 'kv'>, 
 
 export async function dbDelete(name: Exclude<StoreName, 'kv'>, id: string): Promise<void> {
   await wrap((await store(name, 'readwrite')).delete(id));
+  notifyWrite(name);
 }
 
 export async function dbClear(name: StoreName): Promise<void> {
   await wrap((await store(name, 'readwrite')).clear());
+  notifyWrite(name);
 }
 
 export interface ExportFile {
@@ -132,6 +148,7 @@ export async function importAll(data: unknown): Promise<void> {
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error);
   });
+  names.forEach(notifyWrite);
 }
 
 /** Yalnızca testler için: bağlantıyı kapatıp önbelleği sıfırlar. */

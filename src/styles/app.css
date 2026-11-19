@@ -2615,3 +2615,316 @@ a.btn {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* ---------- Oyunlaştırma (Aşama 15) ---------- */
+
+.game-level {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.game-level-badge {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffc35c, var(--accent) 60%, #c47a0a);
+  color: var(--accent-ink);
+  line-height: 1;
+  box-shadow: 0 0 0 3px rgba(245, 165, 36, 0.25);
+}
+
+.game-level-badge small {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.game-level-badge strong {
+  font-size: 26px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-level-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.game-level-head,
+.game-xp-text {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+}
+
+.game-level-head strong {
+  font-size: 17px;
+}
+
+.game-today {
+  color: var(--good);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.game-xp-track {
+  height: 12px;
+}
+
+.game-xp-text {
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-sub {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quest {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 8px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.quest:hover {
+  background: var(--surface-3);
+}
+
+.quest-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--accent);
+}
+
+.quest-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+}
+
+.quest-main .hbar-track {
+  display: block;
+  height: 6px;
+}
+
+.quest-main .hbar-fill {
+  display: block;
+}
+
+.quest-value {
+  flex: none;
+  min-width: 66px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.quest.done {
+  border-color: rgba(61, 220, 132, 0.45);
+}
+
+.quest.done .quest-icon {
+  background: rgba(61, 220, 132, 0.16);
+  color: var(--good);
+}
+
+.quest.done .hbar-fill {
+  background: var(--good);
+}
+
+.quest.done .quest-value {
+  color: var(--good);
+}
+
+.game-howto summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.badge-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .badge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.badge-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.badge-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--muted);
+}
+
+.badge-tile.earned {
+  border-color: rgba(245, 165, 36, 0.5);
+  background: linear-gradient(135deg, rgba(245, 165, 36, 0.14), var(--surface-2) 60%);
+}
+
+.badge-tile.earned .badge-icon {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.badge-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.badge-text .dim {
+  font-size: 14px;
+}
+
+.badge-tile.locked strong {
+  color: #d3d8e2;
+}
+
+.badge-when {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.badge-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.badge-progress .hbar-track {
+  display: block;
+  flex: 1;
+  height: 6px;
+}
+
+.badge-progress .hbar-fill {
+  display: block;
+  background: var(--muted);
+}
+
+.badge-progress .dim {
+  flex: none;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.toasts {
+  position: fixed;
+  z-index: 40;
+  top: calc(env(safe-area-inset-top) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(440px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #232836;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+  font-weight: 650;
+  animation: toast-in 0.25s ease-out;
+}
+
+.toast .icon {
+  color: var(--accent);
+}
+
+.toast-quest {
+  border-color: var(--good);
+}
+
+.toast-quest .icon {
+  color: var(--good);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+/* ---------- Oyunlaştırma sonu ---------- */

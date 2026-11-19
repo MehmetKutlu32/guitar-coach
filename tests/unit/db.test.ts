@@ -14,6 +14,7 @@ import {
   kvGet,
   kvSet,
   newId,
+  onDbWrite,
 } from '../../src/db/db';
 import { dictionaries } from '../../src/i18n';
 import { applySettings, loadSettings, settings, snapshotSettings } from '../../src/settings';
@@ -34,6 +35,19 @@ describe('veritabanı', () => {
     expect(await kvGet('yok')).toBeUndefined();
     await kvSet('a', { n: 1 });
     expect(await kvGet('a')).toEqual({ n: 1 });
+  });
+
+  it('yazma bildirimi: ekleme, silme, temizleme ve içe aktarmada çağrılır (kv yazmasında değil)', async () => {
+    const seen: string[] = [];
+    const off = onDbWrite((store) => seen.push(store));
+    await kvSet('a', 1);
+    await dbPut('results', { id: 'x', type: 'ear', date: 1 });
+    await dbDelete('results', 'x');
+    await dbClear('items');
+    await importAll({ app: 'gitar-app', format: 1, exportedAt: '', stores: { sessions: [] } });
+    off();
+    await dbPut('results', { id: 'y', type: 'ear', date: 1 });
+    expect(seen).toEqual(['results', 'results', 'items', 'sessions']);
   });
 
   it('kayıt ekleme, türe göre listeleme, silme', async () => {

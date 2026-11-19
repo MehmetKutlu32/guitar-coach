@@ -1,5 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { clockText } from './features/log/stats';
+import { GameToasts } from './features/gamify/Gamify';
 import { activeSession } from './features/log/tracker';
 import { FEATURES, findFeature } from './features/registry';
 import { t } from './i18n';
@@ -72,6 +73,7 @@ export function App() {
         </header>
         <Screen key={current.id} />
       </main>
+      <GameToasts />
     </div>
   );
 }

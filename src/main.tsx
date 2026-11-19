@@ -3,6 +3,7 @@ import { render } from 'preact';
 import { App } from './app';
 import { loadPersistent } from './db/persist';
 import { installDebugHooks } from './debug';
+import { startGameWatcher } from './features/gamify/store';
 import { restoreSession, setCurrentActivity } from './features/log/tracker';
 import { findFeature } from './features/registry';
 import { route } from './router';
@@ -12,6 +13,7 @@ import './styles/app.css';
 async function boot(): Promise<void> {
   await Promise.all([loadSettings(), loadPersistent(), restoreSession()]);
   installDebugHooks();
+  startGameWatcher();
   // Ekran değişir değişmez (çizimi beklemeden) süre yeni egzersiz türüne yazılmaya başlar.
   effect(() => setCurrentActivity(findFeature(route.value.id).activity ?? 'free'));
   render(<App />, document.getElementById('app')!);

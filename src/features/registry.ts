@@ -4,6 +4,7 @@ import type { IconName } from '../ui/Icon';
 import { BackingScreen } from './backing/Backing';
 import { ChordsScreen } from './chords/Chords';
 import { EarScreen } from './ear/Ear';
+import { ProgressScreen } from './gamify/Gamify';
 import { Home } from './home/Home';
 import { LogScreen } from './log/Log';
 import { MetronomeScreen } from './metronome/Metronome';
@@ -136,6 +137,7 @@ export const FEATURES: Feature[] = [
     activity: 'song',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
+  { id: 'progress', title: 'nav.progress', desc: 'home.progress.desc', icon: 'trophy', component: ProgressScreen, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },
 ];
 

@@ -1,6 +1,7 @@
 import { t } from '../../i18n';
 import { href, route } from '../../router';
 import { Icon } from '../../ui/Icon';
+import { GameCard } from '../gamify/Gamify';
 import { LevelTest, TodayPlan } from '../plan/Plan';
 import { FEATURES } from '../registry';
 
@@ -11,6 +12,7 @@ export function Home() {
     <div class="stack">
       <p class="lead">{t('app.tagline')}</p>
       <TodayPlan />
+      <GameCard />
       <section>
         <h2 class="section-title">{t('home.tools')}</h2>
         <div class="tool-grid" data-testid="tool-grid">
