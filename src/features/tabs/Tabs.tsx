@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { clampBpm, MAX_BPM, MIN_BPM } from '../../audio/clock';
 import { dbAll, dbDelete, dbPut, newId } from '../../db/db';
 import { persistent } from '../../db/persist';
@@ -217,8 +217,9 @@ function TabView({ initial, isNew, onChanged }: { initial: Tab; isNew: boolean; 
     change(setNote(tabRef.current, at.step, at.string, fret + 10));
   };
 
-  // Masaüstünde klavye: rakamlar, oklar, x, Sil.
-  useEffect(() => {
+  // Masaüstünde klavye: rakamlar, oklar, x, Sil. Dinleyici çizimle aynı anda bağlanır (useLayoutEffect):
+  // useEffect çizimden sonra çalıştığı için yavaş cihazda editör görünür olduğu an basılan tuş kayboluyordu.
+  useLayoutEffect(() => {
     if (!editing) return;
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;

@@ -37,7 +37,7 @@ Kurallar ve aşama tanımları için [CLAUDE.md](CLAUDE.md), kararlar için [DEC
 |-------|-------|
 | `npm run build` (tsc strict + vite) | ✅ |
 | Vitest (birim) | ✅ 322 / 322 |
-| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 135 / 135 (+1 bilerek atlandı: çevrimdışı efekt ölçümü yalnızca masaüstünde) |
+| Playwright (mobil 390×844 + masaüstü 1440×900) | ✅ 136 / 136 (+2 bilerek atlandı: çevrimdışı efekt ölçümü ve CPU yavaşlatmalı tab klavyesi testi yalnızca masaüstünde) |
 | Tarihe bağlı testler 23:59:30'da (`E2E_TIME=23:59:30`, günlük + plan) | ✅ 14 / 14 |
 | Yayınlanmış site duman testi | ⛔ çalıştırılamadı (site yayınlanmadı, aşağıya bak) |
 

@@ -204,3 +204,14 @@ test('masaüstü klavyesiyle yazma ve hazır egzersizi kopyalama', async ({ page
   await page.getByTestId('tab-back').click();
   await expect(page.getByTestId('tab-row')).toHaveCount(6);
 });
+
+test('yavaş cihazda editör görünür görünmez basılan tuş kaybolmaz', async ({ page, browserName }, info) => {
+  // Gerileme testi: klavye dinleyicisi çizimden sonra bağlandığında yavaş CPU'da ilk tuş kayboluyordu (CI'da görüldü).
+  test.skip(browserName !== 'chromium' || info.project.name !== 'desktop', 'CPU yavaşlatma yalnızca Chromium masaüstünde');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 8 });
+  await page.goto('./#/tabs/new');
+  await expect(page.getByTestId('tab-editor')).toBeVisible();
+  await page.keyboard.press('5');
+  await expect(cell(page, 0, 0)).toHaveText('5', { timeout: 3000 });
+});
