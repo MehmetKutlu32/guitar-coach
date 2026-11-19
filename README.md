@@ -147,3 +147,7 @@ SMOKE_URL=https://mehmetkutlu32.github.io/guitar-coach/ npm run smoke
 
 Proje yapısı, mimari kararlar, ölçülen doğruluk oranları ve bilinen eksikler:
 [PROGRESS.md](PROGRESS.md) ve [DECISIONS.md](DECISIONS.md).
+
+## Lisans
+
+[MIT](LICENSE)

@@ -6,3 +6,4 @@ screenshots
 tests/e2e/.tmp
 *.log
 .DS_Store
+.claude/
