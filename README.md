@@ -44,6 +44,9 @@ yalnızca senin cihazında kalır.
 
 **Kendini dinle**
 - **Kayıt:** çalışmanı kaydet, haftalar sonra eski kaydınla yan yana dinle, ne kadar geliştiğini duy.
+- **Efektler:** gitarını overdrive, delay ve reverb ile kulaklıktan canlı dinle. Hazır sesler (temiz, crunch, solo,
+  ambiyans) ya da kendi kaydettiğin ses; gecikme göstergesi ve ıslık (geri besleme) koruması var. Hoparlörle
+  değil, kulaklıkla kullan.
 
 Uygulama Türkçe ve İngilizce kullanılabilir (*Ayarlar → Dil*). Uygulamadaki hazır egzersizler, çalışma şarkıları
 ve riff'ler bu uygulama için yazıldı.

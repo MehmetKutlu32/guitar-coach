@@ -2615,3 +2615,119 @@ a.btn {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* ---------- Canlı efektler (Aşama 16) ---------- */
+
+.fx-knob {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fx-knob-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fx-knob-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-meters {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.fx-meter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fx-clip {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.fx-clip.on {
+  border-color: var(--bad);
+  background: var(--bad);
+  color: #2a0505;
+}
+
+.fx-latency {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--muted);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.fx-latency.good {
+  border-left-color: var(--good);
+}
+
+.fx-latency.ok {
+  border-left-color: var(--warn);
+}
+
+.fx-latency.high {
+  border-left-color: var(--bad);
+}
+
+.fx-latency-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fx-latency-value {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-latency-rating {
+  font-weight: 600;
+}
+
+.fx-unit.on {
+  border-color: rgba(245, 165, 36, 0.55);
+}
+
+.fx-unit .toggle {
+  font-size: 17px;
+}
+
+.fx-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap);
+  align-items: start;
+}
+
+.chip.user {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 900px) {
+  .fx-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

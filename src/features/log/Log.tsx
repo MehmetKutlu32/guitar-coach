@@ -21,7 +21,7 @@ import {
 import { activeSession, finishSession, pauseSession, resumeSession, sessionsVersion, startSession } from './tracker';
 
 /** Günlükte kullanılan egzersiz türleri (özellik kaydındaki `activity` değerleri + serbest). */
-export const ACTIVITIES = ['free', 'tuning', 'rhythm', 'chords', 'backing', 'song', 'tab', 'theory', 'ear'] as const;
+export const ACTIVITIES = ['free', 'tuning', 'rhythm', 'chords', 'backing', 'song', 'tab', 'theory', 'ear', 'fx'] as const;
 
 export function activityName(id: string): string {
   const key = `activity.${id}` as Key;

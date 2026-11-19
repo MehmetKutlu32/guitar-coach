@@ -4,6 +4,7 @@ import type { IconName } from '../ui/Icon';
 import { BackingScreen } from './backing/Backing';
 import { ChordsScreen } from './chords/Chords';
 import { EarScreen } from './ear/Ear';
+import { EffectsScreen } from './fx/Effects';
 import { Home } from './home/Home';
 import { LogScreen } from './log/Log';
 import { MetronomeScreen } from './metronome/Metronome';
@@ -134,6 +135,15 @@ export const FEATURES: Feature[] = [
     component: TracksScreen,
     tool: true,
     activity: 'song',
+  },
+  {
+    id: 'fx',
+    title: 'nav.fx',
+    desc: 'home.fx.desc',
+    icon: 'fx',
+    component: EffectsScreen,
+    tool: true,
+    activity: 'fx',
   },
   { id: 'log', title: 'nav.log', desc: 'home.log.desc', icon: 'log', component: LogScreen, primary: true, tool: true },
   { id: 'settings', title: 'nav.settings', icon: 'settings', component: Settings },

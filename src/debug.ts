@@ -10,6 +10,8 @@ import { BAR_TICKS, eventsAt, TICKS_PER_BEAT, type StyleId } from './features/ba
 import type { RhythmResult } from './features/rhythm/analysis';
 import { rhythmOutcome } from './features/rhythm/session';
 import { tabPlayer } from './features/tabs/player';
+import { renderFxOffline } from './features/fx/chain';
+import { fxLive, type FxLiveState } from './features/fx/live';
 import { resolveTemplate, TEMPLATES } from './music/progressions';
 
 /**
@@ -42,6 +44,10 @@ export interface GitarDebug {
     bpm: number,
     sampleRate?: number,
   ): Promise<Record<'all' | 'drums' | 'bass' | 'chords', Level>>;
+  /** Canlı efekt zincirini çevrimdışı işler (giriş ve çıkış örnekleri). */
+  renderFx: typeof renderFxOffline;
+  /** Canlı efektlerin durumu (çalışıyor mu, sessiz mi, koruma devreye girdi mi). */
+  fx(): FxLiveState;
 }
 
 export interface Level {
@@ -151,5 +157,7 @@ export function installDebugHooks(): void {
     flush: flushPersistent,
     outputFreq,
     analyzeTake,
+    renderFx: renderFxOffline,
+    fx: () => fxLive.peek(),
   };
 }
